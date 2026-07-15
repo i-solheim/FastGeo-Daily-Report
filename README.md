@@ -1,0 +1,1 @@
+# FastGeo-Daily-Report
