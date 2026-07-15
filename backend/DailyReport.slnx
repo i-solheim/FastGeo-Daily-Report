@@ -1,0 +1,6 @@
+<Solution>
+  <Folder Name="/DashboardApi/">
+    <Project Path="DashboardApi/JiraDashboardApi.csproj" />
+  </Folder>
+  <Project Path="JiraIngestion/JiraIngestion.csproj" />
+</Solution>
