@@ -70,7 +70,6 @@ foreach (string projectKey in PROJECT_KEYS)
 }
 
 // -- METHODS -- //
-
 static async Task<List<JsonElement>> GetRecentlyUpdatedIssues(string projectKey, string jira_url, int lookback_days, HttpClient client)
 {
     int startAt = 0;

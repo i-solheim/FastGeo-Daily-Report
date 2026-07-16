@@ -49,7 +49,6 @@ app.MapGet("/api/projects", async () =>
 
 // ----------------------------
 // GET /api/projects/{projectKey}/changes?date=YYYY-MM-DD
-// Now includes issue_type and a computed category per change.
 // ----------------------------
 app.MapGet("/api/projects/{projectKey}/changes", async (string projectKey, string? date) =>
 {
@@ -74,10 +73,9 @@ app.MapGet("/api/projects/{projectKey}/changes", async (string projectKey, strin
         string fromStatus = reader.GetString(5);
         string toStatus = reader.GetString(6);
 
-        // Rule confirmed so far: Done -> completed, moved out of Backlog -> new_task, else status_change
-        // NOTE: still pending final manager confirmation - see the questions you sent.
+        
         string category = toStatus == "Done" ? "completed"
-                         : fromStatus == "Backlog" ? "new_task"
+                         : fromStatus == "Backlog" ? "new_task" // TODO: Current new task detection is wrong
                          : "status_change";
 
         changes.Add(new
