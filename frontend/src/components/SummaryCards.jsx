@@ -16,7 +16,7 @@ export function SummaryCards({ summary }) {
 
             {CATEGORY_ORDER.map(cat => {
                 const Icon = CATEGORY_META[cat].icon;
-                const value = summary[cat === "status_change" ? "status_changes" : cat === "new_task" ? "new_tasks" : "completed"];
+                const value = summary[cat === "status_change" ? "statusChanges" : cat === "new_task" ? "newTasks" : "completed"];
                 return (
                     <div key={cat} className="bg-muted/40 rounded-lg p-4 border">
                         <div className={`flex items-center gap-x-2 mb-1 ${CATEGORY_META[cat].color}`}>
@@ -36,8 +36,8 @@ export function SummaryCards({ summary }) {
                     <Pie
                         data={[
                             { name: "Completed", value: summary.completed },
-                            { name: "Status changes", value: summary.status_changes },
-                            { name: "New tasks", value: summary.new_tasks },
+                            { name: "Status changes", value: summary.statusChanges },
+                            { name: "New tasks", value: summary.newTasks },
                         ]}
                         dataKey="value"
                         innerRadius={30}
