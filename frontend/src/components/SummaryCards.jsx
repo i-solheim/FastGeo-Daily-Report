@@ -7,11 +7,12 @@ export function SummaryCards({ summary }) {
     return (
         <div className="mb-6 grid grid-cols-[1fr_1fr_1fr_1fr_140px] gap-4 items-stretch">
             <div className="bg-muted/40 rounded-lg p-4 border">
-                <div className="flex items-center gap-x-2 mb-1 text-blue-600">
+                <div className="flex items-center min-h-[40px] gap-x-2 mb-1 text-blue-600">
                     <TotalChangesIcon className="size-6" />
                     <p className="text-sm font-bold">Total changes</p>
                 </div>
                 <p className="text-2xl font-medium">{summary.total}</p>
+                <p className="text-xs text-muted-foreground invisible">placeholder</p>
             </div>
 
             {CATEGORY_ORDER.map(cat => {
@@ -19,7 +20,7 @@ export function SummaryCards({ summary }) {
                 const value = summary[cat === "status_change" ? "statusChanges" : cat === "new_task" ? "newTasks" : "completed"];
                 return (
                     <div key={cat} className="bg-muted/40 rounded-lg p-4 border">
-                        <div className={`flex items-center gap-x-2 mb-1 ${CATEGORY_META[cat].color}`}>
+                        <div className={`flex items-center gap-x-2 min-h-[40px] mb-1 ${CATEGORY_META[cat].color}`}>
                             <Icon className="size-6" />
                             <p className="text-sm font-bold">{CATEGORY_META[cat].label}</p>
                         </div>
