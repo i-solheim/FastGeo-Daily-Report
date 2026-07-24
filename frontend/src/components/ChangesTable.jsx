@@ -8,7 +8,7 @@ export function ChangesTable({ changes, selectedMember, expandedAuthors, toggleA
     return (
         <div className="overflow-x-auto">
             <div className="border rounded-lg overflow-hidden min-w-[700px]">
-                <div className="grid grid-cols-[200px_minmax(160,1fr)] bg-muted text-sm font-medium px-4 py-2">
+                <div className="grid grid-cols-[200px_minmax(160px,1fr)] bg-muted text-sm font-medium px-4 py-2">
                     <div>Team Member</div>
                     <div>Changes</div>
                 </div>
@@ -21,7 +21,7 @@ export function ChangesTable({ changes, selectedMember, expandedAuthors, toggleA
                         const isExpanded = !!expandedAuthors[author];
 
                         return (
-                            <div key={author} className="grid grid-cols-[200px_minmax(160,1fr)] border-t">
+                            <div key={author} className="grid grid-cols-[200px_minmax(160px,1fr)] border-t">
                                 <div
                                     onClick={() => toggleAuthor(author)}
                                     className="flex items-center gap-3 px-4 py-3 cursor-pointer hover:bg-muted/50"
@@ -67,23 +67,29 @@ export function ChangesTable({ changes, selectedMember, expandedAuthors, toggleA
                                                             <div className="flex flex-col">
                                                                 {authorData[cat].map(issue => (
                                                                     <div
-                                                                        key={`${issue.issue_key}-${issue.changed_at}-${issue.to_status}`}
+                                                                        key={`${issue.issueKey}-${issue.changedAt}-${issue.toStatus}`}
                                                                         className="grid grid-cols-[90px_minmax(0,1fr)_220px_70px_28px] items-start gap-3 text-sm border-b last:border-b-0 py-4"
                                                                     >
-                                                                        <a href={`${JIRA_BASE_URL}${issue.issue_key}`} target="_blank" rel="noreferrer"
+                                                                        <a href={`${JIRA_BASE_URL}${issue.issueKey}`} target="_blank" rel="noreferrer"
                                                                             className="text-blue-600 hover:underline pl-4">
-                                                                            {issue.issue_key}
+                                                                            {issue.issueKey}
                                                                         </a>
-                                                                        <span className="min-w-0 break-words">{issue.issue_title}</span>
+                                                                        <span className="min-w-0 break-words">{issue.issueTitle}</span>
                                                                         <div className="flex items-center gap-2 flex-wrap">
-                                                                            <Badge variant={badgeClassFor(issue.from_status)}>{issue.from_status}</Badge>
-                                                                            <span className="text-muted-foreground">→</span>
-                                                                            <Badge variant={badgeClassFor(issue.to_status)}>{issue.to_status}</Badge>
+                                                                            {issue.fromStatus && issue.toStatus ? (
+                                                                                <>
+                                                                                    <Badge variant={badgeClassFor(issue.fromStatus)}>{issue.fromStatus}</Badge>
+                                                                                    <span className="text-muted-foreground">→</span>
+                                                                                    <Badge variant={badgeClassFor(issue.toStatus)}>{issue.toStatus}</Badge>
+                                                                                </>
+                                                                            ) : (
+                                                                                <Badge variant="new">New</Badge>
+                                                                            )}
                                                                         </div>
                                                                         <span className="text-xs text-muted-foreground text-right">
-                                                                            {formatTime(issue.changed_at)}
+                                                                            {formatTime(issue.changedAt)}
                                                                         </span>
-                                                                        <a href={`${JIRA_BASE_URL}${issue.issue_key}`} target="_blank" rel="noreferrer"
+                                                                        <a href={`${JIRA_BASE_URL}${issue.issueKey}`} target="_blank" rel="noreferrer"
                                                                             className="text-muted-foreground hover:text-foreground">
                                                                             ↗
                                                                         </a>
