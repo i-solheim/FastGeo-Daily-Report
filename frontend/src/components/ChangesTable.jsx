@@ -2,13 +2,11 @@
 import { Badge } from "@/components/ui/badge";
 import { badgeClassFor, CATEGORY_META, CATEGORY_ORDER, initials, formatTime, countForAuthor } from "@/lib/reportUtils";
 
-const JIRA_BASE_URL = import.meta.env.VITE_JIRA_BASE_URL;
-
 export function ChangesTable({ changes, selectedMember, expandedAuthors, toggleAuthor }) {
     return (
         <div className="overflow-x-auto">
             <div className="border rounded-lg overflow-hidden min-w-[700px]">
-                <div className="grid grid-cols-[200px_minmax(160px,1fr)] bg-muted text-sm font-medium px-4 py-2">
+                <div className="grid grid-cols-[250px_1fr_auto_40px_28px] bg-muted text-sm font-medium px-4 py-2">
                     <div>Team Member</div>
                     <div>Changes</div>
                 </div>
@@ -21,7 +19,7 @@ export function ChangesTable({ changes, selectedMember, expandedAuthors, toggleA
                         const isExpanded = !!expandedAuthors[author];
 
                         return (
-                            <div key={author} className="grid grid-cols-[200px_minmax(160px,1fr)] border-t">
+                            <div key={author} className="grid grid-cols-[250px_1fr_auto_40px_28px] border-t">
                                 <div
                                     onClick={() => toggleAuthor(author)}
                                     className="flex items-center gap-3 px-4 py-3 cursor-pointer hover:bg-muted/50"
@@ -70,7 +68,7 @@ export function ChangesTable({ changes, selectedMember, expandedAuthors, toggleA
                                                                         key={`${issue.issueKey}-${issue.changedAt}-${issue.toStatus}`}
                                                                         className="grid grid-cols-[90px_minmax(0,1fr)_220px_70px_28px] items-start gap-3 text-sm border-b last:border-b-0 py-4"
                                                                     >
-                                                                        <a href={`${JIRA_BASE_URL}${issue.issueKey}`} target="_blank" rel="noreferrer"
+                                                                        <a href={issue.issueUrl} target="_blank" rel="noreferrer"
                                                                             className="text-blue-600 hover:underline pl-4">
                                                                             {issue.issueKey}
                                                                         </a>
@@ -89,7 +87,7 @@ export function ChangesTable({ changes, selectedMember, expandedAuthors, toggleA
                                                                         <span className="text-xs text-muted-foreground text-right">
                                                                             {formatTime(issue.changedAt)}
                                                                         </span>
-                                                                        <a href={`${JIRA_BASE_URL}${issue.issueKey}`} target="_blank" rel="noreferrer"
+                                                                        <a href={issue.issueUrl} target="_blank" rel="noreferrer"
                                                                             className="text-muted-foreground hover:text-foreground">
                                                                             ↗
                                                                         </a>

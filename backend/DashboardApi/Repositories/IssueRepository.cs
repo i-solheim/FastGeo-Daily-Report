@@ -25,14 +25,16 @@ public class IssueRepository
                  issue_title,
                  issue_type,
                  created_at,
-                 author)
+                 author,
+                 issue_url)
             VALUES
                 (@key,
                  @project,
                  @title,
                  @type,
                  @created_at,
-                 @author)
+                 @author,
+                 @url)
             ON CONFLICT (issue_key)
             DO NOTHING;",
             conn);
@@ -43,6 +45,7 @@ public class IssueRepository
         cmd.Parameters.AddWithValue("type", issue.IssueType);
         cmd.Parameters.AddWithValue("created_at", issue.CreatedAt);
         cmd.Parameters.AddWithValue("author", issue.Author);
+        cmd.Parameters.AddWithValue("url", issue.IssueUrl);
 
         await cmd.ExecuteNonQueryAsync();
     }

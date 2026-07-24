@@ -17,4 +17,5 @@ public class ChangeRecord
     public string? ToStatus { get; set; }
 
     public string Category { get; set; } = "";
+    public string IssueUrl { get; set; } = "";
 }

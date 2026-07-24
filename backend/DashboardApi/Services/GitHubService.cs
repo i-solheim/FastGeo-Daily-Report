@@ -1,20 +1,19 @@
-using System.Net.Http.Json;
 using DashboardApi.Models;
 
 namespace DashboardApi.Services;
 
 public class GitHubService
 {
-    private readonly HttpClient _client;
+  private readonly HttpClient _client;
 
-    public GitHubService(HttpClient client)
-    {
-        _client = client;
-    }
+  public GitHubService(HttpClient client)
+  {
+    _client = client;
+  }
 
-    public async Task<IssueInfo> ResolveIssueFromNodeId(string nodeId)
-    {
-        const string query = @"
+  public async Task<IssueInfo> ResolveIssueFromNodeId(string nodeId)
+  {
+    const string query = @"
         query($nodeId: ID!) {
           node(id: $nodeId) {
             ... on Issue {
@@ -34,41 +33,49 @@ public class GitHubService
           }
         }";
 
-        var request = new
-        {
-            query,
-            variables = new { nodeId }
-        };
+    var request = new
+    {
+      query,
+      variables = new { nodeId }
+    };
 
-        HttpResponseMessage response =
-            await _client.PostAsJsonAsync(
-                "https://api.github.com/graphql",
-                request);
+    HttpResponseMessage response =
+        await _client.PostAsJsonAsync(
+            "https://api.github.com/graphql",
+            request);
 
-        response.EnsureSuccessStatusCode();
+    response.EnsureSuccessStatusCode();
 
-        GitHubGraphQLResponse? result =
-            await response.Content.ReadFromJsonAsync<GitHubGraphQLResponse>();
+    GitHubGraphQLResponse? result =
+        await response.Content.ReadFromJsonAsync<GitHubGraphQLResponse>();
 
-        if (result?.Data?.Node is null)
-            throw new Exception($"Unable to resolve issue '{nodeId}'.");
+    if (result?.Data?.Node is null)
+      throw new Exception($"Unable to resolve issue '{nodeId}'.");
 
-        var issue = result.Data.Node;
+    var issue = result.Data.Node;
 
-        return new IssueInfo
-        {
-            IssueKey =
-                $"{issue.Repository.Owner.Login}/{issue.Repository.Name}#{issue.Number}",
+    string owner = issue.Repository.Owner.Login;
+    string repo = issue.Repository.Name;
 
-            Project = issue.Repository.Name,
+    string issueUrl =
+        $"https://github.com/{owner}/{repo}/issues/{issue.Number}";
 
-            IssueTitle = issue.Title,
+    return new IssueInfo
+    {
+      IssueKey =
+        $"{repo}#{issue.Number}",
 
-            IssueType = "Issue",
+      IssueUrl = issueUrl,
 
-            CreatedAt = issue.CreatedAt,
+      Project = repo,
 
-            Author = issue.Author.Login
-        };
-    }
+      IssueTitle = issue.Title,
+
+      IssueType = "Issue",
+
+      CreatedAt = issue.CreatedAt,
+
+      Author = issue.Author.Login
+    };
+  }
 }

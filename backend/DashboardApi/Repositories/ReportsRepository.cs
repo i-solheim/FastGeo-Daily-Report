@@ -53,6 +53,7 @@ public class DashboardRepository
             new NpgsqlCommand(
             @"SELECT
             sc.issue_key,
+            i.issue_url,
             i.issue_title,
             i.issue_type,
             sc.author,
@@ -77,6 +78,7 @@ public class DashboardRepository
 
         SELECT
             i.issue_key,
+            i.issue_url,
             i.issue_title,
             i.issue_type,
             i.author,
@@ -106,20 +108,14 @@ public class DashboardRepository
             changes.Add(new ChangeRecord
             {
                 IssueKey = reader.GetString(0),
-                IssueTitle = reader.GetString(1),
-                IssueType = reader.GetString(2),
-                Author = reader.GetString(3),
-                ChangedAt = reader.GetDateTime(4),
-                FromStatus =
-        reader.IsDBNull(5)
-            ? null
-            : reader.GetString(5),
-                ToStatus =
-        reader.IsDBNull(6)
-            ? null
-            : reader.GetString(6),
-                Category = reader.GetString(7)
-            });
+                IssueUrl = reader.GetString(1),
+                IssueTitle = reader.GetString(2),
+                IssueType = reader.GetString(3),
+                Author = reader.GetString(4),
+                ChangedAt = reader.GetDateTime(5),
+                FromStatus = reader.IsDBNull(6) ? null : reader.GetString(6),
+                ToStatus = reader.IsDBNull(7) ? null : reader.GetString(7),
+                Category = reader.GetString(8)});
         }
 
         return changes;

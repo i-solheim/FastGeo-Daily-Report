@@ -13,4 +13,5 @@ public class IssueInfo
     public DateTime CreatedAt { get; set; }
 
     public string Author { get; set; } = string.Empty;
+    public string IssueUrl { get; set; } = "";
 }
