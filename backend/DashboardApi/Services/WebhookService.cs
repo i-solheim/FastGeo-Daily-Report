@@ -95,6 +95,11 @@ public class WebhookService
                     .GetProperty("name")
                     .GetString();
 
+        if (string.IsNullOrEmpty(fromStatus))
+        {
+            return;
+        }
+
         await _statusRepo.SaveStatusChange(
             new StatusChange
             {
