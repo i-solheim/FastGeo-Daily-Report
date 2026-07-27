@@ -64,7 +64,7 @@ public class DashboardRepository
                     sc.from_status,
                     sc.to_status,
                     CASE
-                        WHEN sc.to_status IN ('In Review', 'Done')
+                        WHEN sc.to_status IN ('In review', 'Done')
                         THEN 'completed'
                         ELSE 'status_change'
                     END AS category
@@ -167,7 +167,7 @@ public class DashboardRepository
                 (
                     SELECT DISTINCT ON (sc.issue_key)
                         CASE
-                            WHEN sc.to_status = 'Done'
+                            WHEN sc.to_status IN ('In review', 'Done')
                             THEN 'completed'
                             ELSE 'status_change'
                         END AS category
