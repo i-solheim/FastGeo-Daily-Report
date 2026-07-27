@@ -51,50 +51,69 @@ public class DashboardRepository
 
         await using var cmd =
             new NpgsqlCommand(
-            @"SELECT
-            sc.issue_key,
-            i.issue_url,
-            i.issue_title,
-            i.issue_type,
-            sc.author,
-            sc.changed_at,
-            sc.from_status,
-            sc.to_status,
-            CASE
-                WHEN sc.to_status='Done'
-                THEN 'completed'
-                ELSE 'status_change'
-            END AS category
+            @"SELECT *
+            FROM
+            (
+                SELECT DISTINCT ON (sc.issue_key)
+                    sc.issue_key,
+                    i.issue_title,
+                    i.issue_type,
+                    i.issue_url,
+                    sc.author,
+                    sc.changed_at,
+                    sc.from_status,
+                    sc.to_status,
+                    CASE
+                        WHEN sc.to_status IN ('In Review', 'Done')
+                        THEN 'completed'
+                        ELSE 'status_change'
+                    END AS category
 
-        FROM status_changes sc
-        JOIN issues i
-            ON sc.issue_key=i.issue_key
+                FROM status_changes sc
+                JOIN issues i
+                    ON sc.issue_key = i.issue_key
 
-        WHERE
-            i.project=@project
-            AND sc.changed_at::date=@day
+                WHERE
+                    i.project = @project
+                    AND sc.changed_at::date = @day
 
-        UNION ALL
+                ORDER BY
+                    sc.issue_key,
+                    sc.changed_at DESC
+            ) latest_changes
 
-        SELECT
-            i.issue_key,
-            i.issue_url,
-            i.issue_title,
-            i.issue_type,
-            i.author,
-            i.created_at,
-            NULL,
-            NULL,
-            'new_task'
+            UNION ALL
 
-        FROM issues i
+            SELECT
+                i.issue_key,
+                i.issue_title,
+                i.issue_type,
+                i.issue_url,
+                i.author,
+                i.created_at,
+                NULL,
+                NULL,
+                'new_task'
 
-        WHERE
-            i.project=@project
-            AND i.created_at::date=@day
+            FROM issues i
 
-        ORDER BY author,
-                 changed_at;",
+            WHERE
+                i.project = @project
+                AND i.created_at::date = @day
+
+                -- only include issues that never changed status today
+                AND NOT EXISTS
+                (
+                    SELECT 1
+                    FROM status_changes sc
+                    WHERE
+                        sc.issue_key = i.issue_key
+                        AND sc.changed_at::date = @day
+                )
+
+            ORDER BY
+                author,
+                changed_at;",
             conn);
 
         cmd.Parameters.AddWithValue("project", project);
@@ -108,14 +127,15 @@ public class DashboardRepository
             changes.Add(new ChangeRecord
             {
                 IssueKey = reader.GetString(0),
-                IssueUrl = reader.GetString(1),
-                IssueTitle = reader.GetString(2),
-                IssueType = reader.GetString(3),
+                IssueTitle = reader.GetString(1),
+                IssueType = reader.GetString(2),
+                IssueUrl = reader.GetString(3),
                 Author = reader.GetString(4),
                 ChangedAt = reader.GetDateTime(5),
                 FromStatus = reader.IsDBNull(6) ? null : reader.GetString(6),
                 ToStatus = reader.IsDBNull(7) ? null : reader.GetString(7),
-                Category = reader.GetString(8)});
+                Category = reader.GetString(8)
+            });
         }
 
         return changes;
@@ -139,39 +159,48 @@ public class DashboardRepository
         await using var cmd =
             new NpgsqlCommand(
             @"SELECT category,
-                 COUNT(*)
+            COUNT(*)
+            FROM
+            (
+                SELECT *
+                FROM
+                (
+                    SELECT DISTINCT ON (sc.issue_key)
+                        CASE
+                            WHEN sc.to_status = 'Done'
+                            THEN 'completed'
+                            ELSE 'status_change'
+                        END AS category
+                    FROM status_changes sc
+                    JOIN issues i
+                        ON sc.issue_key = i.issue_key
+                    WHERE
+                        i.project = @project
+                        AND sc.changed_at::date = @day
+                    ORDER BY
+                        sc.issue_key,
+                        sc.changed_at DESC
+                ) latest
 
-        FROM
-        (
-            SELECT
-                CASE
-                    WHEN sc.to_status='Done'
-                    THEN 'completed'
-                    ELSE 'status_change'
-                END category
+                UNION ALL
 
-            FROM status_changes sc
+                SELECT
+                    'new_task'
+                FROM issues i
+                WHERE
+                    i.project = @project
+                    AND i.created_at::date = @day
+                    AND NOT EXISTS
+                    (
+                        SELECT 1
+                        FROM status_changes sc
+                        WHERE
+                            sc.issue_key = i.issue_key
+                            AND sc.changed_at::date = @day
+                    )
+            ) combined
 
-            JOIN issues i
-                ON sc.issue_key=i.issue_key
-
-            WHERE
-                i.project=@project
-                AND sc.changed_at::date=@day
-
-            UNION ALL
-
-            SELECT 'new_task'
-
-            FROM issues
-
-            WHERE
-                project=@project
-                AND created_at::date=@day
-
-        ) x
-
-        GROUP BY category;",
+            GROUP BY category;",
             conn);
 
         cmd.Parameters.AddWithValue("project", project);
