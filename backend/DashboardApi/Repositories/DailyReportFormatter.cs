@@ -37,8 +37,8 @@ public class DailyReportFormatter
                     ? t
                     : new List<ChangeRecord>();
 
-            WriteDay(sb, "Yesterday", yesterdayChanges);
-            WriteDay(sb, "Today", todayChanges);
+            WriteDay(sb, "Yesterday\n", yesterdayChanges);
+            WriteDay(sb, "Today\n", todayChanges);
 
             sb.AppendLine();
         }
@@ -53,32 +53,31 @@ public class DailyReportFormatter
     {
         sb.AppendLine(heading);
 
-        var completed = changes
-            .Where(c => c.Category == "completed")
+        var done = changes
+            .Where(c => c.ToStatus == "In review" || c.ToStatus == "Done")
             .ToList();
 
-        if (completed.Any())
+        if (done.Any())
         {
-            sb.AppendLine("  Done");
+            sb.AppendLine("  • Done");
 
-            foreach (var issue in completed)
+            foreach (var issue in done)
             {
                 sb.AppendLine(
                     $"    - {issue.IssueKey}: {issue.IssueTitle}");
             }
 
-            sb.AppendLine("");
         }
 
-        var statusChanges = changes
-            .Where(c => c.Category == "status_change")
+        var inProgress = changes
+            .Where(c => c.ToStatus == "In progress")
             .ToList();
 
-        if (statusChanges.Any())
+        if (inProgress.Any())
         {
-            sb.AppendLine("  Status changes");
+            sb.AppendLine("  • In progress");
 
-            foreach (var issue in statusChanges)
+            foreach (var issue in inProgress)
             {
                 sb.AppendLine(
                     $"    - {issue.IssueKey}: {issue.IssueTitle}");
