@@ -66,6 +66,8 @@ public class DailyReportFormatter
                 sb.AppendLine(
                     $"    - {issue.IssueKey}: {issue.IssueTitle}");
             }
+
+            sb.AppendLine("");
         }
 
         var statusChanges = changes
