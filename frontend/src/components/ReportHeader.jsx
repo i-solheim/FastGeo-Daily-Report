@@ -2,8 +2,10 @@
 import { Calendar } from "lucide-react";
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
 import { formatDateLabel, formatShortDate } from "@/lib/reportUtils";
+import { Button } from "@/components/ui/button";
+import { Clipboard } from "lucide-react";
 
-export function ReportHeader({ summary, selectedDate, setSelectedDate, selectedMember, setSelectedMember, authors }) {
+export function ReportHeader({ summary, selectedDate, setSelectedDate, selectedMember, setSelectedMember, authors, onCopyReport }) {
     return (
         <div className="mb-6 mt-16 flex items-start justify-between">
             <div>
@@ -18,6 +20,11 @@ export function ReportHeader({ summary, selectedDate, setSelectedDate, selectedM
                     Changes since {formatShortDate(summary.date)}
                 </p>
             </div>
+
+            <Button onClick={onCopyReport}>
+                <Clipboard className="w-4 h-4 mr-2" />
+                Copy Report
+            </Button>
 
             <div className="flex gap-2">
                 <input

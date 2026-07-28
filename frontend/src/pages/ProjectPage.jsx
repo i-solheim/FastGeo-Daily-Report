@@ -4,6 +4,7 @@ import { Info, RefreshCw, Diamond } from "lucide-react";
 import { ReportHeader } from "@/components/ReportHeader";
 import { SummaryCards } from "@/components/SummaryCards";
 import { ChangesTable } from "@/components/ChangesTable";
+import { toast } from "@/components/ui/toast"
 import { groupByAuthorAndCategory, formatShortDate } from "@/lib/reportUtils";
 
 const API_URL = import.meta.env.VITE_API_URL;
@@ -36,6 +37,23 @@ function ProjectPage() {
         setExpandedAuthors(prev => ({ ...prev, [author]: !prev[author] }));
     }
 
+    async function handleCopyReport() {
+        const response = await fetch(
+            `${API_URL}/api/projects/${projectKey}/report?date=${selectedDate}`
+        );
+
+        const report = await response.text();
+
+        await navigator.clipboard.writeText(report);
+
+        toast.add({
+            title: "Report copied",
+            description: "Standup report copied to clipboard.",
+            type: "success",
+            duration: 2000
+        });
+    }
+
     return (
         <div className="max-w-[60%] mx-auto">
             {summary && (
@@ -46,6 +64,7 @@ function ProjectPage() {
                     selectedMember={selectedMember}
                     setSelectedMember={setSelectedMember}
                     authors={Object.keys(changes)}
+                    onCopyReport={handleCopyReport}
                 />
             )}
 
