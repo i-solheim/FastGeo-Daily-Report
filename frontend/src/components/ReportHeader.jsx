@@ -1,49 +1,63 @@
 // components/ReportHeader.jsx
-import { Calendar } from "lucide-react";
+import { Calendar, Clipboard } from "lucide-react";
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
 import { formatDateLabel, formatShortDate } from "@/lib/reportUtils";
 import { Button } from "@/components/ui/button";
-import { Clipboard } from "lucide-react";
 
 export function ReportHeader({ summary, selectedDate, setSelectedDate, selectedMember, setSelectedMember, authors, onCopyReport }) {
     return (
-        <div className="mb-6 mt-16 flex items-start justify-between">
+        <div className="mb-6 mt-16">
             <div>
-                <div className="flex items-center gap-2">
-                    <h1 className="text-2xl font-bold">Daily Report</h1>
-                    <span className="flex items-center gap-1 text-sm text-muted-foreground">
-                        <Calendar className="w-4 h-4" />
-                        {formatDateLabel(summary.date)}
-                    </span>
+                <h1 className="text-3xl font-bold">Daily Report</h1>
+
+                <div className="mt-2 flex items-center gap-2 text-sm text-muted-foreground">
+                    <Calendar className="w-4 h-4" />
+                    {formatDateLabel(summary.date)}
                 </div>
+
                 <p className="text-sm text-muted-foreground mt-1">
                     Changes since {formatShortDate(summary.date)}
                 </p>
             </div>
 
-            <Button onClick={onCopyReport}>
-                <Clipboard className="w-4 h-4 mr-2" />
-                Copy Report
-            </Button>
+            <div className="mt-6 flex flex-wrap items-center gap-3">
 
-            <div className="flex gap-2">
+                <Button className="h-10" onClick={onCopyReport}>
+                    <Clipboard className="mr-2 h-4 w-4" />
+                    Copy Report
+                </Button>
+
                 <input
                     type="date"
                     value={selectedDate}
+                    className="h-10 rounded-md border px-3 text-sm"
                     onChange={(e) => setSelectedDate(e.target.value)}
-                    className="flex items-center gap-2 border rounded-md px-3 py-2 text-sm"
                 />
-                <Select value={selectedMember} onValueChange={setSelectedMember}>
-                    <SelectTrigger className="w-[160px] px-3 py-6">
+
+                <Select
+                    value={selectedMember}
+                    onValueChange={setSelectedMember}
+                >
+                    <SelectTrigger className="h-10 w-[170px]">
                         <SelectValue />
                     </SelectTrigger>
-                    <SelectContent className="w-[160px]">
-                        <SelectItem value="All Members">All Members</SelectItem>
+
+                    <SelectContent>
+                        <SelectItem value="All Members">
+                            All Members
+                        </SelectItem>
+
                         {authors.map(author => (
-                            <SelectItem key={author} value={author}>{author}</SelectItem>
+                            <SelectItem
+                                key={author}
+                                value={author}
+                            >
+                                {author}
+                            </SelectItem>
                         ))}
                     </SelectContent>
                 </Select>
+
             </div>
         </div>
     );
