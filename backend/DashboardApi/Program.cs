@@ -40,6 +40,7 @@ builder.Services.AddHttpClient<GitHubService>((sp, client) =>
 builder.Services.AddScoped<DashboardRepository>();
 builder.Services.AddScoped<IssueRepository>();
 builder.Services.AddScoped<StatusChangeRepository>();
+builder.Services.AddSingleton<DailyReportFormatter>();
 
 builder.Services.AddScoped<WebhookService>();
 
