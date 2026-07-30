@@ -40,9 +40,12 @@ builder.Services.AddHttpClient<GitHubService>((sp, client) =>
 builder.Services.AddScoped<DashboardRepository>();
 builder.Services.AddScoped<IssueRepository>();
 builder.Services.AddScoped<StatusChangeRepository>();
+builder.Services.AddScoped<UserRepository>();
 builder.Services.AddSingleton<DailyReportFormatter>();
 
 builder.Services.AddScoped<WebhookService>();
+builder.Services.AddScoped<JwtService>();
+builder.Services.AddScoped<PasswordService>();
 
 var app = builder.Build();
 
@@ -53,5 +56,6 @@ app.UseCors("AllowReactDev");
 // --------------------
 DashboardEndpoints.MapDashboardEndpoints(app);
 WebhookEndpoints.MapWebhookEndpoints(app);
+AuthEndpoints.MapAuthEndpoints(app);
 
 app.Run();
