@@ -1,4 +1,7 @@
 using System.Net.Http.Headers;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
 using DashboardApi.Endpoints;
 using DashboardApi.Repositories;
 using DashboardApi.Services;
@@ -34,6 +37,28 @@ builder.Services.AddHttpClient<GitHubService>((sp, client) =>
         "FastGeo-Daily-Report");
 });
 
+builder.Services
+    .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    .AddJwtBearer(options =>
+    {
+        options.TokenValidationParameters =
+            new TokenValidationParameters
+            {
+                ValidateIssuerSigningKey = true,
+                IssuerSigningKey = new SymmetricSecurityKey(
+                    Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Secret"]!)),
+                ValidateIssuer = true,
+                ValidIssuer = builder.Configuration["Jwt:Issuer"],
+
+                ValidateAudience = true,
+                ValidAudience = builder.Configuration["Jwt:Audience"],
+
+                ValidateLifetime = true
+            };
+    });
+
+builder.Services.AddAuthorization();
+
 // --------------------
 // Dependency Injection
 // --------------------
@@ -50,6 +75,8 @@ builder.Services.AddScoped<PasswordService>();
 var app = builder.Build();
 
 app.UseCors("AllowReactDev");
+app.UseAuthentication();
+app.UseAuthorization();
 
 // --------------------
 // Endpoints

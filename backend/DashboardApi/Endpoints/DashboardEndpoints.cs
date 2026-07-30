@@ -7,7 +7,11 @@ public static class DashboardEndpoints
 {
     public static void MapDashboardEndpoints(this WebApplication app)
     {
-        app.MapGet("/api/projects",
+        var dashboard = app
+                .MapGroup("/api")
+                .RequireAuthorization();
+
+        dashboard.MapGet("/projects",
             async (DashboardRepository repo) =>
             {
                 return Results.Json(new
@@ -16,7 +20,7 @@ public static class DashboardEndpoints
                 });
             });
 
-        app.MapGet("/api/projects/{projectKey}/changes",
+        dashboard.MapGet("/projects/{projectKey}/changes",
             async (
                 string projectKey,
                 string? date,
@@ -39,7 +43,7 @@ public static class DashboardEndpoints
                 });
             });
 
-        app.MapGet("/api/projects/{projectKey}/summary",
+        dashboard.MapGet("/projects/{projectKey}/summary",
             async (
                 string projectKey,
                 string? date,
@@ -55,7 +59,7 @@ public static class DashboardEndpoints
                     await repo.GetSummary(projectKey, day));
             });
 
-        app.MapGet("/api/projects/{projectKey}/report",
+        dashboard.MapGet("/projects/{projectKey}/report",
             async (
                 string projectKey,
                 string? date,
