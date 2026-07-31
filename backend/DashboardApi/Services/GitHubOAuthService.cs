@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.WebUtilities;
+using System.Net.Http.Headers;
 using DashboardApi.Models;
 
 namespace DashboardApi.Services;
@@ -43,7 +44,7 @@ public class GitHubOAuthService
             });
         var response = await _client.PostAsync
             ("https://github.com/login/oauth/access_token", form);
-        
+
         response.EnsureSuccessStatusCode();
 
         var tokenResponse =
@@ -55,5 +56,31 @@ public class GitHubOAuthService
         }
 
         return tokenResponse;
+    }
+
+    public async Task<GitHubUser> GetUserAsync(string accessToken)
+    {
+        var request = new HttpRequestMessage(
+            HttpMethod.Get,
+            "https://api.github.com/user");
+
+        request.Headers.Authorization =
+            new AuthenticationHeaderValue(
+                "Bearer",
+                accessToken);
+
+        var response = await _client.SendAsync(request);
+
+        response.EnsureSuccessStatusCode();
+
+        var user = await response.Content.ReadFromJsonAsync<GitHubUser>();
+
+        if (user == null)
+        {
+            throw new InvalidOperationException(
+                "GitHub returned an invalid user response.");
+        }
+
+        return user;
     }
 }

@@ -24,7 +24,10 @@ public static class AuthEndpoints
             var token =
                 await githubOAuthService.ExchangeCodeAsync(code);
 
-            return Results.Json(token);
+            var user =
+                await githubOAuthService.GetUserAsync(token.AccessToken);
+
+            return Results.Json(user);
         });
 
         app.MapPost("/api/login", async (
