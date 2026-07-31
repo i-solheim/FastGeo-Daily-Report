@@ -37,6 +37,15 @@ builder.Services.AddHttpClient<GitHubService>((sp, client) =>
         "FastGeo-Daily-Report");
 });
 
+builder.Services.AddHttpClient<GitHubOAuthService>(client =>
+{
+    client.DefaultRequestHeaders.Accept.Add(
+        new MediaTypeWithQualityHeaderValue("application/json"));
+
+    client.DefaultRequestHeaders.UserAgent.ParseAdd(
+        "FastGeo-Daily-Report");
+});
+
 builder.Services
     .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
@@ -71,8 +80,6 @@ builder.Services.AddSingleton<DailyReportFormatter>();
 builder.Services.AddScoped<WebhookService>();
 builder.Services.AddScoped<JwtService>();
 builder.Services.AddScoped<PasswordService>();
-builder.Services.AddScoped<GitHubOAuthService>();
-
 var app = builder.Build();
 
 app.UseCors("AllowReactDev");

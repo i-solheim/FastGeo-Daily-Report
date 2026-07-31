@@ -16,6 +16,17 @@ public static class AuthEndpoints
             return Results.Redirect(githubOAuthService.BuildAuthorizationUrl());
         });
 
+        app.MapGet("/auth/github/callback", async (
+            string code,
+            GitHubOAuthService githubOAuthService
+        ) =>
+        {
+            var token =
+                await githubOAuthService.ExchangeCodeAsync(code);
+
+            return Results.Json(token);
+        });
+
         app.MapPost("/api/login", async (
             LoginRequest request,
             UserRepository userRepository,
