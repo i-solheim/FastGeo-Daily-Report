@@ -9,6 +9,13 @@ public static class AuthEndpoints
 {
     public static void MapAuthEndpoints(this WebApplication app)
     {
+        app.MapGet("/auth/github/login", (
+            GitHubOAuthService githubOAuthService
+        ) =>
+        {
+            return Results.Redirect(githubOAuthService.BuildAuthorizationUrl());
+        });
+
         app.MapPost("/api/login", async (
             LoginRequest request,
             UserRepository userRepository,

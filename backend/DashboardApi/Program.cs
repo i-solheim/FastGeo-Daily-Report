@@ -71,6 +71,7 @@ builder.Services.AddSingleton<DailyReportFormatter>();
 builder.Services.AddScoped<WebhookService>();
 builder.Services.AddScoped<JwtService>();
 builder.Services.AddScoped<PasswordService>();
+builder.Services.AddScoped<GitHubOAuthService>();
 
 var app = builder.Build();
 
