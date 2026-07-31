@@ -39,8 +39,10 @@ public class DashboardRepository
     }
 
     public async Task<List<ChangeRecord>> GetChanges(
-    string project,
-    DateOnly day)
+        string project,
+        DateOnly day,
+        string username,
+        string role)
     {
         var changes = new List<ChangeRecord>();
 
@@ -49,9 +51,19 @@ public class DashboardRepository
 
         await conn.OpenAsync();
 
+        var authorFilter =
+            role == "Leader"
+                ? ""
+                : "AND sc.author = @username";
+
+        var issueAuthorFilter =
+            role == "Leader"
+                ? ""
+                : "AND i.author = @username";
+
         await using var cmd =
             new NpgsqlCommand(
-            @"SELECT *
+            $@"SELECT *
             FROM
             (
                 SELECT DISTINCT ON (sc.issue_key)
@@ -76,6 +88,7 @@ public class DashboardRepository
                 WHERE
                     i.project = @project
                     AND sc.changed_at::date = @day
+                    {authorFilter}
 
                 ORDER BY
                     sc.issue_key,
@@ -100,6 +113,7 @@ public class DashboardRepository
             WHERE
                 i.project = @project
                 AND i.created_at::date = @day
+                {issueAuthorFilter}
 
                 -- only include issues that never changed status today
                 AND NOT EXISTS
@@ -118,6 +132,11 @@ public class DashboardRepository
 
         cmd.Parameters.AddWithValue("project", project);
         cmd.Parameters.AddWithValue("day", day);
+
+        if (role != "Leader")
+        {
+            cmd.Parameters.AddWithValue("username", username);
+        }
 
         await using var reader =
             await cmd.ExecuteReaderAsync();

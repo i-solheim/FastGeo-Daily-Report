@@ -1,3 +1,4 @@
+using System.Security.Claims;
 using DashboardApi.Repositories;
 using DashboardApi.Services;
 
@@ -24,6 +25,7 @@ public static class DashboardEndpoints
             async (
                 string projectKey,
                 string? date,
+                ClaimsPrincipal user,
                 DashboardRepository repo) =>
             {
                 DateOnly day = DateOnly.Parse(
@@ -32,8 +34,20 @@ public static class DashboardEndpoints
                         .AddDays(-1)
                         .ToString("yyyy-MM-dd"));
 
-                var changes =
-                    await repo.GetChanges(projectKey, day);
+                var username = user.Identity?.Name;
+
+                var role = user.FindFirst(ClaimTypes.Role)?.Value;
+
+                if (username == null || role == null)
+                {
+                    return Results.Unauthorized();
+                }
+
+                var changes = await repo.GetChanges(
+                    projectKey,
+                    day,
+                    username,
+                    role);
 
                 return Results.Json(new
                 {
@@ -63,6 +77,7 @@ public static class DashboardEndpoints
             async (
                 string projectKey,
                 string? date,
+                ClaimsPrincipal user,
                 DashboardRepository repo,
                 DailyReportFormatter formatter) =>
             {
@@ -77,11 +92,20 @@ public static class DashboardEndpoints
 
                 DateOnly yesterday = today.AddDays(-1);
 
+                var username = user.Identity?.Name;
+
+                var role = user.FindFirst(ClaimTypes.Role)?.Value;
+
+                if (username == null || role == null)
+                {
+                    return Results.Unauthorized();
+                }
+
                 var yesterdayChanges =
-                    await repo.GetChanges(projectKey, yesterday);
+                    await repo.GetChanges(projectKey, yesterday, username, role);
 
                 var todayChanges =
-                    await repo.GetChanges(projectKey, today);
+                    await repo.GetChanges(projectKey, today, username, role);
 
                 var report = formatter.Format(
                     yesterdayChanges,
