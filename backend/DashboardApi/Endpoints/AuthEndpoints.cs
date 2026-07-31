@@ -18,16 +18,31 @@ public static class AuthEndpoints
 
         app.MapGet("/auth/github/callback", async (
             string code,
-            GitHubOAuthService githubOAuthService
+            GitHubOAuthService githubOAuthService,
+            UserRepository userRepository,
+            JwtService jwtService
         ) =>
         {
             var token =
                 await githubOAuthService.ExchangeCodeAsync(code);
 
-            var user =
+            var githubUser =
                 await githubOAuthService.GetUserAsync(token.AccessToken);
 
-            return Results.Json(user);
+            var user =
+                await userRepository.GetByUsername(githubUser.Login);
+
+            if (user == null)
+            {
+                return Results.Forbid();
+            }
+
+            var jwt = jwtService.CreateToken(user);
+
+            return Results.Ok(new
+            {
+                token = jwt
+            });
         });
 
         app.MapPost("/api/login", async (
