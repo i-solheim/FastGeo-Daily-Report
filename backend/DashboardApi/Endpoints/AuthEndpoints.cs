@@ -39,10 +39,10 @@ public static class AuthEndpoints
 
             var jwt = jwtService.CreateToken(user);
 
-            return Results.Ok(new
-            {
-                token = jwt
-            });
+            var redirectUrl =
+                $"http://localhost:5173/auth/callback?token={Uri.EscapeDataString(jwt)}";
+
+            return Results.Redirect(redirectUrl);
         });
 
         app.MapPost("/api/login", async (

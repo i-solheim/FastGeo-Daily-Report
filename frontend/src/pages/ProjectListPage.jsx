@@ -1,17 +1,26 @@
 import { useState, useEffect } from "react";
 import { Card, CardHeader, CardTitle } from "@/components/ui/card";
 import { Link } from "react-router-dom"
-
-const API_URL = import.meta.env.VITE_API_URL;
+import { getProjects } from "@/lib/dashboardApi";
 
 function ProjectListPage() {
     const [projects, setProjects] = useState([]);
 
     useEffect(() => {
-        fetch(`${API_URL}/api/projects`)
-            .then(response => response.json())
-            .then(data => setProjects(data.projects));
+
+        async function loadProjects() {
+
+            try {
+                const data = await getProjects();
+                setProjects(data.projects);
+            } catch (error) {
+                console.error(error);
+            }
+        }
+
+        loadProjects();
     }, []);
+
 
     return <>
         {projects.map(project => (

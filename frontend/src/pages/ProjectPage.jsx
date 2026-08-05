@@ -6,9 +6,11 @@ import { SummaryCards } from "@/components/SummaryCards";
 import { ChangesTable } from "@/components/ChangesTable";
 import { toast } from "@/components/ui/toast"
 import { groupByAuthorAndCategory, formatShortDate } from "@/lib/reportUtils";
-
-const API_URL = import.meta.env.VITE_API_URL;
-
+import {
+    getChanges,
+    getSummary,
+    getReport
+} from "@/lib/dashboardApi";
 function ProjectPage() {
     const { projectKey } = useParams();
     const [changes, setChanges] = useState({});
@@ -21,28 +23,37 @@ function ProjectPage() {
     });
     const [selectedMember, setSelectedMember] = useState("All Members");
 
-    useEffect(() => {
-        fetch(`${API_URL}/api/projects/${projectKey}/changes?date=${selectedDate}`)
-            .then(response => response.json())
-            .then(data => setChanges(groupByAuthorAndCategory(data.changes)));
-    }, [projectKey, selectedDate]);
+    async function loadChanges() {
+        const data = await getChanges(
+            projectKey,
+            selectedDate
+        );
 
-    useEffect(() => {
-        fetch(`${API_URL}/api/projects/${projectKey}/summary?date=${selectedDate}`)
-            .then(response => response.json())
-            .then(data => setSummary(data));
-    }, [projectKey, selectedDate]);
+        setChanges(groupByAuthorAndCategory(data.changes));
+    }
+
+    loadChanges();
+
+    async function loadSummary() {
+        const data = await getSummary(
+            projectKey,
+            selectedDate
+        );
+
+        setSummary(data);
+    }
+
+    loadSummary();
 
     function toggleAuthor(author) {
         setExpandedAuthors(prev => ({ ...prev, [author]: !prev[author] }));
     }
 
     async function handleCopyReport() {
-        const response = await fetch(
-            `${API_URL}/api/projects/${projectKey}/report?date=${selectedDate}`
+        const report = await getReport(
+            projectKey,
+            selectedDate
         );
-
-        const report = await response.text();
 
         await navigator.clipboard.writeText(report);
 
