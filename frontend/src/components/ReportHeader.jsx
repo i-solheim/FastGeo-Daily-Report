@@ -4,7 +4,7 @@ import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@
 import { formatDateLabel, formatShortDate } from "@/lib/reportUtils";
 import { Button } from "@/components/ui/button";
 
-export function ReportHeader({ summary, selectedDate, setSelectedDate, selectedMember, setSelectedMember, authors, onCopyReport }) {
+export function ReportHeader({ summary, selectedDate, setSelectedDate, selectedMember, setSelectedMember, authors, onCopyReport, onLogout }) {
     return (
         <div className="mb-6 mt-16">
             <div>
@@ -59,6 +59,12 @@ export function ReportHeader({ summary, selectedDate, setSelectedDate, selectedM
                 </Select>
 
             </div>
+            <Button
+                variant="outline"
+                onClick={onLogout}
+            >
+                Logout
+            </Button>
         </div>
     );
 }

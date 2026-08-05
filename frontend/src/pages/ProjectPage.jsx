@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import { Info, RefreshCw, Diamond } from "lucide-react";
 import { ReportHeader } from "@/components/ReportHeader";
 import { SummaryCards } from "@/components/SummaryCards";
@@ -11,6 +11,8 @@ import {
     getSummary,
     getReport
 } from "@/lib/dashboardApi";
+import { useAuth } from "../context/AuthContext";
+
 function ProjectPage() {
     const { projectKey } = useParams();
     const [changes, setChanges] = useState({});
@@ -32,7 +34,9 @@ function ProjectPage() {
         setChanges(groupByAuthorAndCategory(data.changes));
     }
 
-    loadChanges();
+    useEffect(() => {
+        loadChanges();
+    }, [projectKey, selectedDate]);
 
     async function loadSummary() {
         const data = await getSummary(
@@ -43,7 +47,9 @@ function ProjectPage() {
         setSummary(data);
     }
 
-    loadSummary();
+    useEffect(() => {
+        loadSummary();
+    }, [projectKey, selectedDate]);
 
     function toggleAuthor(author) {
         setExpandedAuthors(prev => ({ ...prev, [author]: !prev[author] }));
@@ -65,6 +71,14 @@ function ProjectPage() {
         });
     }
 
+    const { logout } = useAuth();
+    const navigate = useNavigate();
+
+    function handleLogout() {
+        logout();
+        navigate("/", { replace: true });
+    }
+
     return (
         <div className="max-w-[60%] mx-auto">
             {summary && (
@@ -76,6 +90,7 @@ function ProjectPage() {
                     setSelectedMember={setSelectedMember}
                     authors={Object.keys(changes)}
                     onCopyReport={handleCopyReport}
+                    onLogout={handleLogout}
                 />
             )}
 
