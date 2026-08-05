@@ -161,7 +161,9 @@ public class DashboardRepository
     }
     public async Task<SummaryResult> GetSummary(
         string project,
-        DateOnly day)
+        DateOnly day,
+        string username,
+        string role)
     {
         var counts = new Dictionary<string, int>
         {
@@ -175,9 +177,19 @@ public class DashboardRepository
 
         await conn.OpenAsync();
 
+        var authorFilter =
+            role == "Leader"
+                ? ""
+                : "AND sc.author = @username";
+
+        var issueAuthorFilter =
+            role == "Leader"
+                ? ""
+                : "AND i.author = @username";
+
         await using var cmd =
             new NpgsqlCommand(
-            @"SELECT category,
+            $@"SELECT category,
             COUNT(*)
             FROM
             (
@@ -196,6 +208,7 @@ public class DashboardRepository
                     WHERE
                         i.project = @project
                         AND sc.changed_at::date = @day
+                        {authorFilter}
                     ORDER BY
                         sc.issue_key,
                         sc.changed_at DESC
@@ -209,6 +222,7 @@ public class DashboardRepository
                 WHERE
                     i.project = @project
                     AND i.created_at::date = @day
+                    {issueAuthorFilter}
                     AND NOT EXISTS
                     (
                         SELECT 1
@@ -224,6 +238,11 @@ public class DashboardRepository
 
         cmd.Parameters.AddWithValue("project", project);
         cmd.Parameters.AddWithValue("day", day);
+
+        if (role != "Leader")
+        {
+            cmd.Parameters.AddWithValue("username", username);
+        }
 
         await using var reader =
             await cmd.ExecuteReaderAsync();

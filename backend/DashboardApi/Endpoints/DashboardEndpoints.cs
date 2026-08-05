@@ -61,6 +61,7 @@ public static class DashboardEndpoints
             async (
                 string projectKey,
                 string? date,
+                ClaimsPrincipal user,
                 DashboardRepository repo) =>
             {
                 DateOnly day = DateOnly.Parse(
@@ -69,8 +70,20 @@ public static class DashboardEndpoints
                         .AddDays(-1)
                         .ToString("yyyy-MM-dd"));
 
+                var username = user.Identity?.Name;
+                var role = user.FindFirst(ClaimTypes.Role)?.Value;
+
+                if (username == null || role == null)
+                {
+                    return Results.Unauthorized();
+                }
+
                 return Results.Json(
-                    await repo.GetSummary(projectKey, day));
+                    await repo.GetSummary(
+                        projectKey,
+                        day,
+                        username,
+                        role));
             });
 
         dashboard.MapGet("/projects/{projectKey}/report",
