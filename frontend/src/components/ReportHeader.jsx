@@ -3,21 +3,43 @@ import { Calendar, Clipboard } from "lucide-react";
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
 import { formatDateLabel, formatShortDate } from "@/lib/reportUtils";
 import { Button } from "@/components/ui/button";
+import { useAuth } from "../context/AuthContext";
 
 export function ReportHeader({ summary, selectedDate, setSelectedDate, selectedMember, setSelectedMember, authors, onCopyReport, onLogout }) {
+    const { user } = useAuth();
     return (
         <div className="mb-6 mt-16">
-            <div>
-                <h1 className="text-3xl font-bold">Daily Report</h1>
+            <div className="flex items-start justify-between">
+                <div>
+                    <h1 className="text-3xl font-bold">Daily Report</h1>
 
-                <div className="mt-2 flex items-center gap-2 text-sm text-muted-foreground">
-                    <Calendar className="w-4 h-4" />
-                    {formatDateLabel(summary.date)}
+                    <div className="mt-2 flex items-center gap-2 text-sm text-muted-foreground">
+                        <Calendar className="w-4 h-4" />
+                        {formatDateLabel(summary.date)}
+                    </div>
+
+                    <p className="text-sm text-muted-foreground mt-1">
+                        Changes since {formatShortDate(summary.date)}
+                    </p>
                 </div>
 
-                <p className="text-sm text-muted-foreground mt-1">
-                    Changes since {formatShortDate(summary.date)}
-                </p>
+                <div className="flex flex-col items-end gap-2">
+                    <div className="text-right">
+                        <p className="font-medium">{user?.username}</p>
+
+                        <p className="text-sm text-muted-foreground">
+                            {user?.role}
+                        </p>
+                    </div>
+
+                    <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={onLogout}
+                    >
+                        Logout
+                    </Button>
+                </div>
             </div>
 
             <div className="mt-6 flex flex-wrap items-center gap-3">
@@ -59,12 +81,6 @@ export function ReportHeader({ summary, selectedDate, setSelectedDate, selectedM
                 </Select>
 
             </div>
-            <Button
-                variant="outline"
-                onClick={onLogout}
-            >
-                Logout
-            </Button>
         </div>
     );
 }

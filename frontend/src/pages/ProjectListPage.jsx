@@ -22,12 +22,6 @@ function ProjectListPage() {
         loadProjects();
     }, []);
 
-    const { token, isAuthenticated } = useAuth();
-
-console.log(token);
-console.log(isAuthenticated);
-
-
     return <>
         {projects.map(project => (
             <Link key={project} to={`/project/${project}`}>

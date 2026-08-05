@@ -17,7 +17,7 @@ export default function AuthCallbackPage() {
 
         login(token);
 
-        navigate("/");
+        navigate("/", { replace: true });
     }, [login, navigate, searchParams]);
 
     return <p>Signing you in...</p>;
