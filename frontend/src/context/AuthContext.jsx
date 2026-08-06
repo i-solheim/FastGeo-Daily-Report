@@ -1,34 +1,39 @@
-import { createContext, useContext, useState, useCallback } from "react";
-import { jwtDecode } from "jwt-decode";
+import { createContext, useContext, useState, useEffect, useCallback } from "react";
+import { getCurrentUser, logoutUser } from "@/lib/authApi";
 
 const AuthContext = createContext(null);
 
 export function AuthProvider({ children }) {
-    const [token, setToken] = useState(
-        () => localStorage.getItem("token")
-    );
+    const [user, setUser] = useState(null);
+    const [loading, setLoading] = useState(true);
 
-    const [user, setUser] = useState(
-        () => parseUser(localStorage.getItem("token"))
-    );
+    useEffect(() => {
+        async function loadUser() {
+            try {
+                const currentUser = await getCurrentUser();
+                setUser(currentUser);
+            } catch {
+                setUser(null);
+            } finally {
+                setLoading(false);
+            }
+        }
 
-    const login = useCallback((newToken) => {
-        localStorage.setItem("token", newToken);
-        setToken(newToken);
-        setUser(parseUser(newToken));
+        loadUser();
     }, []);
 
-    const logout = useCallback(() => {
-        localStorage.removeItem("token");
-        setToken(null);
+    const logout = useCallback(async () => {
+    try {
+        await logoutUser();
+    } finally {
         setUser(null);
-    }, []);
+    }
+}, []);
 
     const value = {
-        token,
         user,
-        isAuthenticated: !!token,
-        login,
+        loading,
+        isAuthenticated: !!user,
         logout,
     };
 
@@ -47,16 +52,4 @@ export function useAuth() {
     }
 
     return context;
-}
-
-function parseUser(token) {
-    if (!token) return null;
-
-    const claims = jwtDecode(token);
-
-    return {
-        id: claims["http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier"],
-        username: claims["http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name"],
-        role: claims["http://schemas.microsoft.com/ws/2008/06/identity/claims/role"],
-    };
 }

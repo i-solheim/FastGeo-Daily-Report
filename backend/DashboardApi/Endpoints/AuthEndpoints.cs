@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Identity;
+using System.Security.Claims;
 using DashboardApi.Repositories;
 using DashboardApi.Services;
 using DashboardApi.Models;
@@ -17,6 +18,7 @@ public static class AuthEndpoints
         });
 
         app.MapGet("/auth/github/callback", async (
+            HttpContext httpContext,
             string code,
             GitHubOAuthService githubOAuthService,
             UserRepository userRepository,
@@ -39,10 +41,19 @@ public static class AuthEndpoints
 
             var jwt = jwtService.CreateToken(user);
 
-            var redirectUrl =
-                $"http://localhost:5173/auth/callback?token={Uri.EscapeDataString(jwt)}";
+            httpContext.Response.Cookies.Append(
+                "auth",
+                jwt,
+                new CookieOptions
+                {
+                    HttpOnly = true,
+                    Secure = false, // localhost only
+                    SameSite = SameSiteMode.Lax,
+                    Path = "/",
+                    Expires = DateTimeOffset.UtcNow.AddDays(7)
+                });
 
-            return Results.Redirect(redirectUrl);
+            return Results.Redirect("http://localhost:5173/");
         });
 
         app.MapPost("/api/login", async (
@@ -78,6 +89,28 @@ public static class AuthEndpoints
                 Username = user.Username,
                 Role = user.Role
             });
+        });
+
+        app.MapGet("/auth/me", (
+            ClaimsPrincipal user
+        ) =>
+        {
+            return Results.Ok(new
+            {
+                Username = user.Identity?.Name,
+                Role = user.FindFirst(ClaimTypes.Role)?.Value
+            });
+        })
+        .RequireAuthorization();
+
+        app.MapPost("/auth/logout", (HttpContext httpContext) =>
+        {
+            httpContext.Response.Cookies.Delete("auth", new CookieOptions
+            {
+                Path = "/"
+            });
+
+            return Results.Ok();
         });
     }
 }

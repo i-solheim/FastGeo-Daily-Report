@@ -2,7 +2,6 @@ import ProjectListPage from "./pages/ProjectListPage";
 import ProjectPage from "./pages/ProjectPage";
 import { Route, Routes } from "react-router-dom"
 import { Toaster } from "@/components/ui/toast";
-import AuthCallbackPage from "./pages/AuthCallbackPage";
 import ProtectedRoute from "./components/ProtectedRoute";
 import LoginPage from "./pages/LoginPage";
 
@@ -29,11 +28,6 @@ function App() {
                 <ProjectPage />
               </ProtectedRoute>
             }
-          />
-
-          <Route
-            path="/auth/callback"
-            element={<AuthCallbackPage />}
           />
         </Routes>
       </Toaster>

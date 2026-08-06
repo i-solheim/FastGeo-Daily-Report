@@ -97,8 +97,8 @@ function ProjectPage() {
         });
     }
 
-    function handleLogout() {
-        logout();
+    async function handleLogout() {
+        await logout();
         navigate("/", { replace: true });
     }
 
