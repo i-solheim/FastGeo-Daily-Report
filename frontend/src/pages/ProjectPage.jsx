@@ -12,9 +12,14 @@ import {
     getReport
 } from "@/lib/dashboardApi";
 import { useAuth } from "../context/AuthContext";
+import ReportHeaderSkeleton from "@/components/ReportHeaderSkeleton";
+import SummaryCardsSkeleton from "@/components/SummaryCardsSkeleton";
+import ChangesTableSkeleton from "@/components/ChangesTableSkeleton";
 
 function ProjectPage() {
     const { projectKey } = useParams();
+    const { logout } = useAuth();
+    const navigate = useNavigate();
     const [changes, setChanges] = useState({});
     const [expandedAuthors, setExpandedAuthors] = useState({});
     const [summary, setSummary] = useState(null);
@@ -24,32 +29,53 @@ function ProjectPage() {
         return yesterday.toISOString().split("T")[0];
     });
     const [selectedMember, setSelectedMember] = useState("All Members");
-
-    async function loadChanges() {
-        const data = await getChanges(
-            projectKey,
-            selectedDate
-        );
-
-        setChanges(groupByAuthorAndCategory(data.changes));
-    }
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
 
     useEffect(() => {
-        loadChanges();
+        async function loadData() {
+            try {
+                setLoading(true);
+                setError(null);
+
+                const [changesData, summaryData] = await Promise.all([
+                    getChanges(projectKey, selectedDate),
+                    getSummary(projectKey, selectedDate),
+                ]);
+
+                setChanges(
+                    groupByAuthorAndCategory(changesData.changes)
+                );
+
+                setSummary(summaryData);
+            } catch (err) {
+                console.error(err);
+                setError(err);
+            } finally {
+                setLoading(false);
+            }
+        }
+
+        loadData();
     }, [projectKey, selectedDate]);
 
-    async function loadSummary() {
-        const data = await getSummary(
-            projectKey,
-            selectedDate
+    if (loading) {
+        return (
+            <div className="max-w-[60%] mx-auto">
+                <ReportHeaderSkeleton />
+                <SummaryCardsSkeleton />
+                <ChangesTableSkeleton />
+            </div>
         );
-
-        setSummary(data);
     }
 
-    useEffect(() => {
-        loadSummary();
-    }, [projectKey, selectedDate]);
+    if (error) {
+        return (
+            <p className="text-red-500">
+                Failed to load report.
+            </p>
+        );
+    }
 
     function toggleAuthor(author) {
         setExpandedAuthors(prev => ({ ...prev, [author]: !prev[author] }));
@@ -70,9 +96,6 @@ function ProjectPage() {
             duration: 2000
         });
     }
-
-    const { logout } = useAuth();
-    const navigate = useNavigate();
 
     function handleLogout() {
         logout();
