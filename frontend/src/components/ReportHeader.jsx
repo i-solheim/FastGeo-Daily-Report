@@ -4,6 +4,7 @@ import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@
 import { formatDateLabel, formatShortDate } from "@/lib/reportUtils";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "../context/AuthContext";
+import DatePicker from "@/components/DatePicker";
 
 export function ReportHeader({ summary, selectedDate, setSelectedDate, selectedMember, setSelectedMember, authors, onCopyReport, onLogout }) {
     const { user } = useAuth();
@@ -49,11 +50,9 @@ export function ReportHeader({ summary, selectedDate, setSelectedDate, selectedM
                     Copy Report
                 </Button>
 
-                <input
-                    type="date"
+                <DatePicker
                     value={selectedDate}
-                    className="h-10 rounded-md border px-3 text-sm"
-                    onChange={(e) => setSelectedDate(e.target.value)}
+                    onChange={setSelectedDate}
                 />
 
                 {user?.role === "Leader" && (
