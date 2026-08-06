@@ -56,29 +56,31 @@ export function ReportHeader({ summary, selectedDate, setSelectedDate, selectedM
                     onChange={(e) => setSelectedDate(e.target.value)}
                 />
 
-                <Select
-                    value={selectedMember}
-                    onValueChange={setSelectedMember}
-                >
-                    <SelectTrigger className="h-10 w-[170px]">
-                        <SelectValue />
-                    </SelectTrigger>
+                {user?.role === "Leader" && (
+                    <Select
+                        value={selectedMember}
+                        onValueChange={setSelectedMember}
+                    >
+                        <SelectTrigger className="h-10 w-[170px]">
+                            <SelectValue />
+                        </SelectTrigger>
 
-                    <SelectContent>
-                        <SelectItem value="All Members">
-                            All Members
-                        </SelectItem>
-
-                        {authors.map(author => (
-                            <SelectItem
-                                key={author}
-                                value={author}
-                            >
-                                {author}
+                        <SelectContent>
+                            <SelectItem value="All Members">
+                                All Members
                             </SelectItem>
-                        ))}
-                    </SelectContent>
-                </Select>
+
+                            {authors.map(author => (
+                                <SelectItem
+                                    key={author}
+                                    value={author}
+                                >
+                                    {author}
+                                </SelectItem>
+                            ))}
+                        </SelectContent>
+                    </Select>
+                )}
 
             </div>
         </div>
