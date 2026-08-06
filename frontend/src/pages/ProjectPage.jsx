@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Info, RefreshCw, Diamond } from "lucide-react";
 import { ReportHeader } from "@/components/ReportHeader";
@@ -15,6 +15,7 @@ import { useAuth } from "../context/AuthContext";
 import ReportHeaderSkeleton from "@/components/ReportHeaderSkeleton";
 import SummaryCardsSkeleton from "@/components/SummaryCardsSkeleton";
 import ChangesTableSkeleton from "@/components/ChangesTableSkeleton";
+import ErrorState from "@/components/ErrorState";
 
 function ProjectPage() {
     const { projectKey } = useParams();
@@ -32,32 +33,32 @@ function ProjectPage() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
 
+    const loadData = useCallback(async () => {
+    try {
+        setLoading(true);
+        setError(null);
+
+        const [changesData, summaryData] = await Promise.all([
+            getChanges(projectKey, selectedDate),
+            getSummary(projectKey, selectedDate),
+        ]);
+
+        setChanges(
+            groupByAuthorAndCategory(changesData.changes)
+        );
+
+        setSummary(summaryData);
+    } catch (err) {
+        console.error(err);
+        setError(err);
+    } finally {
+        setLoading(false);
+    }
+}, [projectKey, selectedDate]);
+
     useEffect(() => {
-        async function loadData() {
-            try {
-                setLoading(true);
-                setError(null);
-
-                const [changesData, summaryData] = await Promise.all([
-                    getChanges(projectKey, selectedDate),
-                    getSummary(projectKey, selectedDate),
-                ]);
-
-                setChanges(
-                    groupByAuthorAndCategory(changesData.changes)
-                );
-
-                setSummary(summaryData);
-            } catch (err) {
-                console.error(err);
-                setError(err);
-            } finally {
-                setLoading(false);
-            }
-        }
-
         loadData();
-    }, [projectKey, selectedDate]);
+    }, [loadData]);
 
     if (loading) {
         return (
@@ -71,9 +72,11 @@ function ProjectPage() {
 
     if (error) {
         return (
-            <p className="text-red-500">
-                Failed to load report.
-            </p>
+            <ErrorState
+                title="Couldn't load report"
+                description="Please check your connection and try again."
+                onRetry={loadData}
+            />
         );
     }
 

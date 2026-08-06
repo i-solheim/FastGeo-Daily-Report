@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Card, CardHeader, CardTitle } from "@/components/ui/card";
 import { Link } from "react-router-dom"
 import { getProjects } from "@/lib/dashboardApi";
@@ -6,31 +6,32 @@ import { useAuth } from "../context/AuthContext";
 import ProjectCardSkeleton from "@/components/ProjectCardSkeleton";
 import { FolderKanban } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
+import ErrorState from "@/components/ErrorState";
+import EmptyState from "@/components/EmptyState";
 
 function ProjectListPage() {
     const [projects, setProjects] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
 
-    useEffect(() => {
+    const loadProjects = useCallback(async () => {
+        try {
+            setLoading(true);
+            setError(null);
 
-        async function loadProjects() {
-
-            try {
-                setLoading(true);
-                await new Promise(resolve => setTimeout(resolve, 2000));
-                const data = await getProjects();
-                setProjects(data.projects);
-            } catch (error) {
-                console.error(error);
-                setError(error);
-            } finally {
-                setLoading(false);
-            }
+            const data = await getProjects();
+            setProjects(data.projects);
+        } catch (err) {
+            console.error(err);
+            setError(err);
+        } finally {
+            setLoading(false);
         }
-
-        loadProjects();
     }, []);
+
+    useEffect(() => {
+        loadProjects();
+    }, [loadProjects]);
 
     if (loading) {
         return (
@@ -51,9 +52,21 @@ function ProjectListPage() {
 
     if (error) {
         return (
-            <p className="text-red-500">
-                Failed to load projects.
-            </p>
+            <ErrorState
+                title="Couldn't load projects"
+                description="Please check your connection and try again."
+                onRetry={loadProjects}
+            />
+        );
+    }
+
+    if (projects.length === 0) {
+        return (
+            <EmptyState
+                icon={FolderKanban}
+                title="No projects found"
+                description="There are no projects available for your account."
+            />
         );
     }
 

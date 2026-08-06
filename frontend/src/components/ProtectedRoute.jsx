@@ -1,11 +1,12 @@
 import { Navigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
+import PageLoader from "@/components/PageLoader";
 
 export default function ProtectedRoute({ children }) {
     const { isAuthenticated, loading } = useAuth();
 
     if (loading) {
-        return <p>Loading...</p>; // replace this later
+        return <PageLoader />;
     }
 
     if (!isAuthenticated) {
