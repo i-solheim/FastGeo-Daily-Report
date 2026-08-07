@@ -5,23 +5,24 @@ const AuthContext = createContext(null);
 
 export function AuthProvider({ children }) {
     const [user, setUser] = useState(null);
-    const [loading, setLoading] = useState(true);
+    const [status, setStatus] = useState("loading");
 
     useEffect(() => {
         async function loadUser() {
             try {
                 const currentUser = await getCurrentUser();
                 setUser(currentUser);
-            } catch (err){
+                setStatus("authenticated");
+            } catch (err) {
                 if (err.status === 401) {
                     setUser(null);
+                    setStatus("unauthenticated");
                 } else {
                     console.error(err);
+                    setStatus("offline");
                     // Backend unavailable or another unexpected error.
                     // Don't log the user out here.
                 }
-            } finally {
-                setLoading(false);
             }
         }
 
@@ -33,13 +34,13 @@ export function AuthProvider({ children }) {
             await logoutUser();
         } finally {
             setUser(null);
+            setStatus("unauthenticated");
         }
     }, []);
 
     const value = {
         user,
-        loading,
-        isAuthenticated: !!user,
+        status,
         logout,
     };
 
