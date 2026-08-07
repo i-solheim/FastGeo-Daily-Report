@@ -38,6 +38,19 @@ public static class AuthEndpoints
             {
                 return Results.Forbid();
             }
+            else
+            {
+                var displayName =
+                    string.IsNullOrWhiteSpace(githubUser.Name)
+                        ? githubUser.Login
+                        : githubUser.Name;
+
+                await userRepository.UpdateDisplayName(
+                    user.Id,
+                    displayName);
+
+                user.DisplayName = displayName;
+            }
 
             var jwt = jwtService.CreateToken(user);
 
@@ -98,7 +111,9 @@ public static class AuthEndpoints
             return Results.Ok(new
             {
                 Username = user.Identity?.Name,
+                DisplayName = user.FindFirst("display_name")?.Value,
                 Role = user.FindFirst(ClaimTypes.Role)?.Value
+                
             });
         })
         .RequireAuthorization();

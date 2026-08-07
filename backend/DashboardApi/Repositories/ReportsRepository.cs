@@ -71,7 +71,7 @@ public class DashboardRepository
                     i.issue_title,
                     i.issue_type,
                     i.issue_url,
-                    sc.author,
+                    COALESCE(u.display_name, sc.author) AS author,
                     sc.changed_at,
                     sc.from_status,
                     sc.to_status,
@@ -84,6 +84,8 @@ public class DashboardRepository
                 FROM status_changes sc
                 JOIN issues i
                     ON sc.issue_key = i.issue_key
+                LEFT JOIN users u
+                    ON sc.author = u.username
 
                 WHERE
                     i.project = @project
@@ -102,13 +104,15 @@ public class DashboardRepository
                 i.issue_title,
                 i.issue_type,
                 i.issue_url,
-                i.author,
+                COALESCE(u.display_name, i.author) AS author,
                 i.created_at,
                 NULL,
                 NULL,
                 'new_task'
 
             FROM issues i
+            LEFT JOIN users u
+                ON i.author = u.username
 
             WHERE
                 i.project = @project

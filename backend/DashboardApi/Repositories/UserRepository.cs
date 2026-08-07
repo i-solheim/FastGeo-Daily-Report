@@ -21,7 +21,7 @@ public class UserRepository
 
         await using var cmd =
             new NpgsqlCommand(
-                @"SELECT id, username, password_hash, role
+                @"SELECT id, username, display_name, password_hash, role
                 FROM users
                 WHERE username = @username;",
                 conn);
@@ -39,9 +39,35 @@ public class UserRepository
         {
             Id = reader.GetInt32(0),
             Username = reader.GetString(1),
-            PasswordHash = reader.GetString(2),
-            Role = reader.GetString(3)
+            DisplayName = reader.IsDBNull(2)
+                ? ""
+                : reader.GetString(2),
+            PasswordHash = reader.GetString(3),
+            Role = reader.GetString(4)
         };
+    }
 
+    public async Task UpdateDisplayName(
+    int userId,
+    string displayName)
+    {
+        await using var conn =
+            new NpgsqlConnection(_connectionString);
+
+        await conn.OpenAsync();
+
+        await using var cmd =
+            new NpgsqlCommand(
+                """
+            UPDATE users
+            SET display_name = @displayName
+            WHERE id = @id;
+            """,
+                conn);
+
+        cmd.Parameters.AddWithValue("id", userId);
+        cmd.Parameters.AddWithValue("displayName", displayName);
+
+        await cmd.ExecuteNonQueryAsync();
     }
 }

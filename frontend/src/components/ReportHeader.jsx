@@ -26,7 +26,7 @@ export function ReportHeader({ summary, selectedDate, setSelectedDate, selectedM
 
                 <div className="flex flex-col items-end gap-2">
                     <div className="text-right">
-                        <p className="font-medium">{user?.username}</p>
+                        <p className="font-medium">{user?.displayName}</p>
 
                         <p className="text-sm text-muted-foreground">
                             {user?.role}
