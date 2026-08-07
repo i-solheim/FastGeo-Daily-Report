@@ -1,15 +1,47 @@
 const API_BASE = import.meta.env.VITE_API_URL;
 
-async function request(path) {
-    const response = await fetch(`${API_BASE}${path}`, {
-        credentials: "include",
-    });
+class ApiError extends Error {
+    constructor(status, message) {
+        super(message);
 
-    if (!response.ok) {
-        throw new Error(`Request failed: ${response.status}`);
+        this.name = "ApiError";
+        this.status = status;
     }
+}
 
-    return response;
+export async function request(path, options = {}) {
+    try {
+        const response = await fetch(`${API_BASE}${path}`, {
+            credentials: "include",
+            ...options
+        });
+
+        if (response.status === 401) {
+
+            throw new ApiError(
+                401,
+                "Unauthorized"
+            );
+        }
+
+        if (!response.ok) {
+            throw new ApiError(
+                response.status,
+                `Request failed: ${response.status}`
+            );
+        }
+
+        return response;
+    } catch (err) {
+        if (err instanceof ApiError) {
+            throw err;
+        }
+
+        throw new ApiError(
+            0,
+            "Unable to reach the server."
+        );
+    }
 }
 
 export async function apiGet(path) {

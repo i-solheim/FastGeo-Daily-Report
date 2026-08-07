@@ -12,8 +12,14 @@ export function AuthProvider({ children }) {
             try {
                 const currentUser = await getCurrentUser();
                 setUser(currentUser);
-            } catch {
-                setUser(null);
+            } catch (err){
+                if (err.status === 401) {
+                    setUser(null);
+                } else {
+                    console.error(err);
+                    // Backend unavailable or another unexpected error.
+                    // Don't log the user out here.
+                }
             } finally {
                 setLoading(false);
             }
@@ -23,12 +29,12 @@ export function AuthProvider({ children }) {
     }, []);
 
     const logout = useCallback(async () => {
-    try {
-        await logoutUser();
-    } finally {
-        setUser(null);
-    }
-}, []);
+        try {
+            await logoutUser();
+        } finally {
+            setUser(null);
+        }
+    }, []);
 
     const value = {
         user,
