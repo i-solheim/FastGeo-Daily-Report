@@ -26,7 +26,8 @@ public static class DashboardEndpoints
                 string projectKey,
                 string? date,
                 ClaimsPrincipal user,
-                DashboardRepository repo) =>
+                DashboardRepository repo,
+                ProjectRepository projectRepository) =>
             {
                 DateOnly day = DateOnly.Parse(
                     date ??
@@ -36,12 +37,26 @@ public static class DashboardEndpoints
 
                 var username = user.Identity?.Name;
 
-                var role = user.FindFirst(ClaimTypes.Role)?.Value;
+                var userIdClaim =
+                    user.FindFirst(ClaimTypes.NameIdentifier)?.Value;
 
-                if (username == null || role == null)
+                if (username == null ||
+                    !int.TryParse(userIdClaim, out var userId))
                 {
                     return Results.Unauthorized();
                 }
+
+                var membership =
+                    await projectRepository.GetMembership(
+                        projectKey,
+                        userId);
+
+                if (membership == null)
+                {
+                    return Results.Forbid();
+                }
+
+                var role = membership.Role;
 
                 var changes = await repo.GetChanges(
                     projectKey,
@@ -62,7 +77,8 @@ public static class DashboardEndpoints
                 string projectKey,
                 string? date,
                 ClaimsPrincipal user,
-                DashboardRepository repo) =>
+                DashboardRepository repo,
+                ProjectRepository projectRepository) =>
             {
                 DateOnly day = DateOnly.Parse(
                     date ??
@@ -71,12 +87,27 @@ public static class DashboardEndpoints
                         .ToString("yyyy-MM-dd"));
 
                 var username = user.Identity?.Name;
-                var role = user.FindFirst(ClaimTypes.Role)?.Value;
 
-                if (username == null || role == null)
+                var userIdClaim =
+                    user.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+                if (username == null ||
+                    !int.TryParse(userIdClaim, out var userId))
                 {
                     return Results.Unauthorized();
                 }
+
+                var membership =
+                    await projectRepository.GetMembership(
+                        projectKey,
+                        userId);
+
+                if (membership == null)
+                {
+                    return Results.Forbid();
+                }
+
+                var role = membership.Role;
 
                 return Results.Json(
                     await repo.GetSummary(
@@ -92,6 +123,7 @@ public static class DashboardEndpoints
                 string? date,
                 ClaimsPrincipal user,
                 DashboardRepository repo,
+                ProjectRepository projectRepository,
                 DailyReportFormatter formatter) =>
             {
                 DateOnly day = DateOnly.Parse(
@@ -107,12 +139,26 @@ public static class DashboardEndpoints
 
                 var username = user.Identity?.Name;
 
-                var role = user.FindFirst(ClaimTypes.Role)?.Value;
+                var userIdClaim =
+                    user.FindFirst(ClaimTypes.NameIdentifier)?.Value;
 
-                if (username == null || role == null)
+                if (username == null ||
+                    !int.TryParse(userIdClaim, out var userId))
                 {
                     return Results.Unauthorized();
                 }
+
+                var membership =
+                    await projectRepository.GetMembership(
+                        projectKey,
+                        userId);
+
+                if (membership == null)
+                {
+                    return Results.Forbid();
+                }
+
+                var role = membership.Role;
 
                 var yesterdayChanges =
                     await repo.GetChanges(projectKey, yesterday, username, role);

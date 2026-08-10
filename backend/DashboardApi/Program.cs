@@ -82,6 +82,7 @@ builder.Services.AddAuthorization();
 // Dependency Injection
 // --------------------
 builder.Services.AddScoped<DashboardRepository>();
+builder.Services.AddScoped<ProjectRepository>();
 builder.Services.AddScoped<IssueRepository>();
 builder.Services.AddScoped<StatusChangeRepository>();
 builder.Services.AddScoped<UserRepository>();
