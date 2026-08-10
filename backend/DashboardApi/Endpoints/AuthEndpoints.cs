@@ -99,8 +99,7 @@ public static class AuthEndpoints
             return Results.Ok(new LoginResponse
             {
                 Token = token,
-                Username = user.Username,
-                Role = user.Role
+                Username = user.Username
             });
         });
 
@@ -111,9 +110,7 @@ public static class AuthEndpoints
             return Results.Ok(new
             {
                 Username = user.Identity?.Name,
-                DisplayName = user.FindFirst("display_name")?.Value,
-                Role = user.FindFirst(ClaimTypes.Role)?.Value
-                
+                DisplayName = user.FindFirst("display_name")?.Value
             });
         })
         .RequireAuthorization();

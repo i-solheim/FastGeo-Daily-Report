@@ -21,7 +21,7 @@ public class UserRepository
 
         await using var cmd =
             new NpgsqlCommand(
-                @"SELECT id, username, display_name, password_hash, role
+                @"SELECT id, username, display_name, password_hash
                 FROM users
                 WHERE username = @username;",
                 conn);
@@ -42,8 +42,7 @@ public class UserRepository
             DisplayName = reader.IsDBNull(2)
                 ? ""
                 : reader.GetString(2),
-            PasswordHash = reader.GetString(3),
-            Role = reader.GetString(4)
+            PasswordHash = reader.GetString(3)
         };
     }
 
