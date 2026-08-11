@@ -13,11 +13,20 @@ public static class DashboardEndpoints
                 .RequireAuthorization();
 
         dashboard.MapGet("/projects",
-            async (DashboardRepository repo) =>
+            async (
+                ClaimsPrincipal user,
+                DashboardRepository repo) =>
             {
+                var userIdClaim = 
+                    user.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                
+                if (!int.TryParse(userIdClaim, out var userId))
+                {
+                    return Results.Unauthorized();
+                }
                 return Results.Json(new
                 {
-                    projects = await repo.GetProjects()
+                    projects = await repo.GetProjects(userId)
                 });
             });
 

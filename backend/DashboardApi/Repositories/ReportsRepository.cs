@@ -13,9 +13,9 @@ public class DashboardRepository
             configuration.GetConnectionString("Postgres")!;
     }
 
-    public async Task<List<string>> GetProjects()
+    public async Task<List<ProjectAccessDto>> GetProjects(int userId)
     {
-        var projects = new List<string>();
+        var projects = new List<ProjectAccessDto>();
 
         await using var conn =
             new NpgsqlConnection(_connectionString);
@@ -24,16 +24,27 @@ public class DashboardRepository
 
         await using var cmd =
             new NpgsqlCommand(
-                @"SELECT DISTINCT project
-              FROM issues
-              ORDER BY project",
+                @"SELECT p.project_key, pm.role
+                  FROM projects p
+                  JOIN project_members pm
+                      ON p.id = pm.project_id
+                  WHERE pm.user_id = @userId
+                  ORDER BY pm.project_id;",
                 conn);
+
+        cmd.Parameters.AddWithValue("userId", userId);
 
         await using var reader =
             await cmd.ExecuteReaderAsync();
 
         while (await reader.ReadAsync())
-            projects.Add(reader.GetString(0));
+        {
+            projects.Add(new ProjectAccessDto
+            {
+                ProjectKey = reader.GetString(0),
+                Role = reader.GetString(1)
+            });
+        }
 
         return projects;
     }

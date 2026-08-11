@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { useAuth } from "../context/AuthContext";
 import DatePicker from "@/components/DatePicker";
 
-export function ReportHeader({ summary, selectedDate, setSelectedDate, selectedMember, setSelectedMember, authors, onCopyReport, onLogout }) {
+export function ReportHeader({ summary, role, selectedDate, setSelectedDate, selectedMember, setSelectedMember, authors, onCopyReport, onLogout }) {
     const { user } = useAuth();
     return (
         <div className="mb-6 mt-16">
@@ -29,7 +29,7 @@ export function ReportHeader({ summary, selectedDate, setSelectedDate, selectedM
                         <p className="font-medium">{user?.displayName}</p>
 
                         <p className="text-sm text-muted-foreground">
-                            {user?.role}
+                            {role}
                         </p>
                     </div>
 
@@ -55,7 +55,7 @@ export function ReportHeader({ summary, selectedDate, setSelectedDate, selectedM
                     onChange={setSelectedDate}
                 />
 
-                {user?.role === "Leader" && (
+                {role === "Leader" && (
                     <Select
                         value={selectedMember}
                         onValueChange={setSelectedMember}

@@ -6,11 +6,7 @@ import { SummaryCards } from "@/components/SummaryCards";
 import { ChangesTable } from "@/components/ChangesTable";
 import { toast } from "@/components/ui/toast"
 import { groupByAuthorAndCategory, formatShortDate } from "@/lib/reportUtils";
-import {
-    getChanges,
-    getSummary,
-    getReport
-} from "@/lib/dashboardApi";
+import { getChanges, getSummary, getReport, getProjects } from "@/lib/dashboardApi";
 import { useAuth } from "../context/AuthContext";
 import ReportHeaderSkeleton from "@/components/ReportHeaderSkeleton";
 import SummaryCardsSkeleton from "@/components/SummaryCardsSkeleton";
@@ -24,6 +20,7 @@ function ProjectPage() {
     const [changes, setChanges] = useState({});
     const [expandedAuthors, setExpandedAuthors] = useState({});
     const [summary, setSummary] = useState(null);
+    const [projectRole, setProjectRole] = useState(null);
     const [selectedDate, setSelectedDate] = useState(() => {
         const yesterday = new Date();
         yesterday.setDate(yesterday.getDate() - 1);
@@ -34,27 +31,39 @@ function ProjectPage() {
     const [error, setError] = useState(null);
 
     const loadData = useCallback(async () => {
-    try {
-        setLoading(true);
-        setError(null);
+        try {
+            setLoading(true);
+            setError(null);
 
-        const [changesData, summaryData] = await Promise.all([
-            getChanges(projectKey, selectedDate),
-            getSummary(projectKey, selectedDate),
-        ]);
+            const [projectsData, changesData, summaryData] =
+                await Promise.all([
+                    getProjects(),
+                    getChanges(projectKey, selectedDate),
+                    getSummary(projectKey, selectedDate),
+                ]);
 
-        setChanges(
-            groupByAuthorAndCategory(changesData.changes)
-        );
+            const currentProject = projectsData.projects.find(
+                project => project.projectKey === projectKey
+            );
 
-        setSummary(summaryData);
-    } catch (err) {
-        console.error(err);
-        setError(err);
-    } finally {
-        setLoading(false);
-    }
-}, [projectKey, selectedDate]);
+            if (!currentProject) {
+                throw new Error("You do not have access to this project.");
+            }
+
+            setProjectRole(currentProject.role);
+
+            setChanges(
+                groupByAuthorAndCategory(changesData.changes)
+            );
+
+            setSummary(summaryData);
+        } catch (err) {
+            console.error(err);
+            setError(err);
+        } finally {
+            setLoading(false);
+        }
+    }, [projectKey, selectedDate]);
 
     useEffect(() => {
         loadData();
@@ -110,6 +119,7 @@ function ProjectPage() {
             {summary && (
                 <ReportHeader
                     summary={summary}
+                    role={projectRole}
                     selectedDate={selectedDate}
                     setSelectedDate={setSelectedDate}
                     selectedMember={selectedMember}

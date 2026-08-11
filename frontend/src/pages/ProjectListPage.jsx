@@ -83,16 +83,20 @@ function ProjectListPage() {
             </div>
             <div className="space-y-4">
                 {projects.map(project => (
-                    <Link key={project} to={`/project/${project}`}>
+                    <Link
+                        key={project.projectKey}
+                        to={`/project/${project.projectKey}`}
+                    >
                         <Card className="transition-all hover:shadow-md hover:border-primary/40">
                             <CardHeader>
                                 <div className="flex items-center gap-3">
                                     <FolderKanban className="h-6 w-6 text-primary" />
 
                                     <div>
-                                        <CardTitle>{project}</CardTitle>
+                                        <CardTitle>{project.projectKey}</CardTitle>
+
                                         <p className="text-sm text-muted-foreground">
-                                            Open daily report
+                                            {project.role} · Open daily report
                                         </p>
                                     </div>
                                 </div>
