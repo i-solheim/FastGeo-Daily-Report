@@ -90,7 +90,6 @@ builder.Services.AddSingleton<DailyReportFormatter>();
 
 builder.Services.AddScoped<WebhookService>();
 builder.Services.AddScoped<JwtService>();
-builder.Services.AddScoped<PasswordService>();
 var app = builder.Build();
 
 app.UseCors("AllowReactDev");

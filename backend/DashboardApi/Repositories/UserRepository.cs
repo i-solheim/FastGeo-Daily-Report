@@ -21,7 +21,7 @@ public class UserRepository
 
         await using var cmd =
             new NpgsqlCommand(
-                @"SELECT id, username, display_name, password_hash
+                @"SELECT id, username, display_name
                 FROM users
                 WHERE username = @username;",
                 conn);
@@ -41,8 +41,7 @@ public class UserRepository
             Username = reader.GetString(1),
             DisplayName = reader.IsDBNull(2)
                 ? ""
-                : reader.GetString(2),
-            PasswordHash = reader.GetString(3)
+                : reader.GetString(2)
         };
     }
 
@@ -69,7 +68,7 @@ public class UserRepository
 
         await cmd.ExecuteNonQueryAsync();
     }
-    
+
     public async Task<User> CreateUser(
     string username,
     string displayName)
@@ -83,9 +82,9 @@ public class UserRepository
             new NpgsqlCommand(
                 """
             INSERT INTO users
-                (username, display_name, password_hash)
+                (username, display_name)
             VALUES
-                (@username, @displayName, '')
+                (@username, @displayName)
             RETURNING id;
             """,
                 conn);
@@ -99,8 +98,7 @@ public class UserRepository
         {
             Id = id,
             Username = username,
-            DisplayName = displayName,
-            PasswordHash = ""
+            DisplayName = displayName
         };
     }
 }

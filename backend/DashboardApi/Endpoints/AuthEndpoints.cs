@@ -80,40 +80,6 @@ public static class AuthEndpoints
             return Results.Redirect("http://localhost:5173/");
         });
 
-        app.MapPost("/api/login", async (
-            LoginRequest request,
-            UserRepository userRepository,
-            PasswordService passwordService,
-            JwtService jwtService
-        ) =>
-        {
-            var user = await userRepository.GetByUsername(request.Username);
-
-            if (user == null)
-            {
-                return Results.Unauthorized();
-            }
-
-            var result = passwordService.Verify(user, request.Password);
-
-            var valid =
-                result == PasswordVerificationResult.Success ||
-                result == PasswordVerificationResult.SuccessRehashNeeded;
-
-            if (!valid)
-            {
-                return Results.Unauthorized();
-            }
-
-            var token = jwtService.CreateToken(user);
-
-            return Results.Ok(new LoginResponse
-            {
-                Token = token,
-                Username = user.Username
-            });
-        });
-
         app.MapGet("/auth/me", (
             ClaimsPrincipal user
         ) =>
