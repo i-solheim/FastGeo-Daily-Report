@@ -10,6 +10,7 @@ public class GitHubOAuthService
     private readonly string _clientSecret;
     private readonly string _clientId;
     private readonly string _callbackUrl;
+    private readonly string _organization;
 
     public GitHubOAuthService(IConfiguration configuration, HttpClient client)
     {
@@ -17,6 +18,7 @@ public class GitHubOAuthService
         _clientId = configuration["GitHubOAuth:ClientId"]!;
         _callbackUrl = configuration["GitHubOAuth:CallbackUrl"]!;
         _clientSecret = configuration["GitHubOAuth:ClientSecret"]!;
+        _organization = configuration["GitHubOAuth:Organization"]!;
     }
 
     public string BuildAuthorizationUrl()
@@ -24,7 +26,8 @@ public class GitHubOAuthService
         var parameters = new Dictionary<string, string?>
         {
             ["client_id"] = _clientId,
-            ["redirect_uri"] = _callbackUrl
+            ["redirect_uri"] = _callbackUrl,
+            ["scope"] = "read:org"
         };
 
         return QueryHelpers.AddQueryString(
@@ -82,5 +85,31 @@ public class GitHubOAuthService
         }
 
         return user;
+    }
+
+    public async Task<bool> IsOrganizationMemberAsync(
+        string accessToken)
+    {
+        var request = new HttpRequestMessage(
+            HttpMethod.Get,
+            $"https://api.github.com/user/memberships/orgs/{_organization}");
+
+        request.Headers.Authorization =
+            new AuthenticationHeaderValue(
+                "Bearer",
+                accessToken);
+
+        var response = await _client.SendAsync(request);
+
+        if (!response.IsSuccessStatusCode)
+        {
+            return false;
+        }
+
+        var membership =
+            await response.Content
+                .ReadFromJsonAsync<GitHubOrganizationMembership>();
+
+        return membership?.State == "active";
     }
 }

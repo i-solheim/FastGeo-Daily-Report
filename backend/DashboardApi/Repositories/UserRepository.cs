@@ -69,4 +69,38 @@ public class UserRepository
 
         await cmd.ExecuteNonQueryAsync();
     }
+    
+    public async Task<User> CreateUser(
+    string username,
+    string displayName)
+    {
+        await using var conn =
+            new NpgsqlConnection(_connectionString);
+
+        await conn.OpenAsync();
+
+        await using var cmd =
+            new NpgsqlCommand(
+                """
+            INSERT INTO users
+                (username, display_name, password_hash)
+            VALUES
+                (@username, @displayName, '')
+            RETURNING id;
+            """,
+                conn);
+
+        cmd.Parameters.AddWithValue("username", username);
+        cmd.Parameters.AddWithValue("displayName", displayName);
+
+        var id = (int)(await cmd.ExecuteScalarAsync())!;
+
+        return new User
+        {
+            Id = id,
+            Username = username,
+            DisplayName = displayName,
+            PasswordHash = ""
+        };
+    }
 }

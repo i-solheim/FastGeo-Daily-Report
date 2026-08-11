@@ -31,20 +31,31 @@ public static class AuthEndpoints
             var githubUser =
                 await githubOAuthService.GetUserAsync(token.AccessToken);
 
+            var isOrganizationMember =
+                await githubOAuthService.IsOrganizationMemberAsync(
+                    token.AccessToken);
+
+            if (!isOrganizationMember)
+            {
+                return Results.Forbid();
+            }
+
+            var displayName =
+                    string.IsNullOrWhiteSpace(githubUser.Name)
+                        ? githubUser.Login
+                        : githubUser.Name;
+
             var user =
                 await userRepository.GetByUsername(githubUser.Login);
 
             if (user == null)
             {
-                return Results.Forbid();
+                user = await userRepository.CreateUser(
+                    githubUser.Login,
+                    githubUser.Name ?? githubUser.Login);
             }
             else
             {
-                var displayName =
-                    string.IsNullOrWhiteSpace(githubUser.Name)
-                        ? githubUser.Login
-                        : githubUser.Name;
-
                 await userRepository.UpdateDisplayName(
                     user.Id,
                     displayName);
