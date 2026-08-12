@@ -21,7 +21,7 @@ public class UserRepository
 
         await using var cmd =
             new NpgsqlCommand(
-                @"SELECT id, username, display_name
+                @"SELECT id, username, display_name, is_admin
                 FROM users
                 WHERE username = @username;",
                 conn);
@@ -41,7 +41,8 @@ public class UserRepository
             Username = reader.GetString(1),
             DisplayName = reader.IsDBNull(2)
                 ? ""
-                : reader.GetString(2)
+                : reader.GetString(2),
+            IsAdmin = reader.GetBoolean(3)
         };
     }
 
@@ -98,7 +99,45 @@ public class UserRepository
         {
             Id = id,
             Username = username,
-            DisplayName = displayName
+            DisplayName = displayName,
+            IsAdmin = false
         };
+    }
+
+    public async Task<List<User>> GetUsers()
+    {
+        var users = new List<User>();
+
+        await using var conn =
+            new NpgsqlConnection(_connectionString);
+
+        await conn.OpenAsync();
+
+        await using var cmd =
+            new NpgsqlCommand(
+                """
+            SELECT id, username, display_name, is_admin
+            FROM users
+            ORDER BY username;
+            """,
+                conn);
+
+        await using var reader =
+            await cmd.ExecuteReaderAsync();
+
+        while (await reader.ReadAsync())
+        {
+            users.Add(new User
+            {
+                Id = reader.GetInt32(0),
+                Username = reader.GetString(1),
+                DisplayName = reader.IsDBNull(2)
+                    ? ""
+                    : reader.GetString(2),
+                IsAdmin = reader.GetBoolean(3)
+            });
+        }
+
+        return users;
     }
 }

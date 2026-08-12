@@ -5,6 +5,8 @@ using System.Text;
 using DashboardApi.Endpoints;
 using DashboardApi.Repositories;
 using DashboardApi.Services;
+using DashboardApi.Authorization;
+using Microsoft.AspNetCore.Authorization;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -76,7 +78,19 @@ builder.Services
         };
     });
 
-builder.Services.AddAuthorization();
+builder.Services.AddAuthorization(options =>
+{
+    options.AddPolicy("AdminOnly", policy =>
+    {
+        policy.RequireClaim("is_admin", "true");
+    });
+
+    options.AddPolicy("AdminOrLeader", policy =>
+    {
+        policy.AddRequirements(
+            new AdminOrLeaderRequirement());
+    });
+});
 
 // --------------------
 // Dependency Injection
@@ -90,6 +104,9 @@ builder.Services.AddSingleton<DailyReportFormatter>();
 
 builder.Services.AddScoped<WebhookService>();
 builder.Services.AddScoped<JwtService>();
+
+builder.Services.AddScoped<IAuthorizationHandler, AdminOrLeaderHandler>();
+
 var app = builder.Build();
 
 app.UseCors("AllowReactDev");
@@ -102,5 +119,7 @@ app.UseAuthorization();
 DashboardEndpoints.MapDashboardEndpoints(app);
 WebhookEndpoints.MapWebhookEndpoints(app);
 AuthEndpoints.MapAuthEndpoints(app);
+AdminEndpoints.MapAdminEndpoints(app);
+AdminOrLeaderEndpoints.MapAdminOrLeaderEndpoints(app);
 
 app.Run();
