@@ -25,8 +25,6 @@ public class DailyReportFormatter
 
         foreach (var author in authors)
         {
-            sb.AppendLine(author);
-
             var yesterdayChanges =
                 yesterdayAuthors.TryGetValue(author, out var y)
                     ? y
@@ -37,13 +35,31 @@ public class DailyReportFormatter
                     ? t
                     : new List<ChangeRecord>();
 
-            WriteDay(sb, "Yesterday\n", yesterdayChanges);
-            WriteDay(sb, "Today\n", todayChanges);
+            // Only include the author if they have
+            // at least one reportable change.
+            if (!HasReportableChanges(yesterdayChanges) &&
+                !HasReportableChanges(todayChanges))
+            {
+                continue;
+            }
+
+            sb.AppendLine($"## {author}");
+            sb.AppendLine();
+
+            WriteDay(
+                sb,
+                "Yesterday",
+                yesterdayChanges);
+
+            WriteDay(
+                sb,
+                "Today",
+                todayChanges);
 
             sb.AppendLine();
         }
 
-        return sb.ToString();
+        return sb.ToString().TrimEnd();
     }
 
     private static void WriteDay(
@@ -51,39 +67,58 @@ public class DailyReportFormatter
         string heading,
         List<ChangeRecord> changes)
     {
-        sb.AppendLine(heading);
-
         var done = changes
-            .Where(c => c.ToStatus == "In review" || c.ToStatus == "Done")
+            .Where(c =>
+                c.ToStatus == "In review" ||
+                c.ToStatus == "Done")
             .ToList();
+
+        var inProgress = changes
+            .Where(c =>
+                c.ToStatus == "In progress")
+            .ToList();
+
+        if (!done.Any() && !inProgress.Any())
+        {
+            return;
+        }
+
+        sb.AppendLine($"### {heading}");
+        sb.AppendLine();
 
         if (done.Any())
         {
-            sb.AppendLine("  • Done");
+            sb.AppendLine("**Done**");
 
             foreach (var issue in done)
             {
                 sb.AppendLine(
-                    $"    - {issue.IssueKey}: {issue.IssueTitle}");
+                    $"- **{issue.IssueKey}**: {issue.IssueTitle}");
             }
 
+            sb.AppendLine();
         }
-
-        var inProgress = changes
-            .Where(c => c.ToStatus == "In progress")
-            .ToList();
 
         if (inProgress.Any())
         {
-            sb.AppendLine("  • In progress");
+            sb.AppendLine("**In progress**");
 
             foreach (var issue in inProgress)
             {
                 sb.AppendLine(
-                    $"    - {issue.IssueKey}: {issue.IssueTitle}");
+                    $"- **{issue.IssueKey}**: {issue.IssueTitle}");
             }
-        }
 
-        sb.AppendLine();
+            sb.AppendLine();
+        }
+    }
+
+    private static bool HasReportableChanges(
+        List<ChangeRecord> changes)
+    {
+        return changes.Any(c =>
+            c.ToStatus == "In review" ||
+            c.ToStatus == "Done" ||
+            c.ToStatus == "In progress");
     }
 }
