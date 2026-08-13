@@ -16,18 +16,22 @@ export async function request(path, options = {}) {
             ...options
         });
 
-        if (response.status === 401) {
-
-            throw new ApiError(
-                401,
-                "Unauthorized"
-            );
-        }
-
         if (!response.ok) {
+            let message = `Request failed: ${response.status}`;
+
+            try {
+                const data = await response.json();
+
+                if (data.message) {
+                    message = data.message;
+                }
+            } catch {
+                // Response wasn't JSON.
+            }
+
             throw new ApiError(
                 response.status,
-                `Request failed: ${response.status}`
+                message
             );
         }
 

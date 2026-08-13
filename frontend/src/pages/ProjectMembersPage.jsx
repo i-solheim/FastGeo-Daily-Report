@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { ArrowLeft } from "lucide-react";
+import { toast } from "@/components/ui/toast";
 import {
     getProjectMembers,
     getAvailableUsers,
@@ -21,6 +22,7 @@ function ProjectMembersPage() {
 
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
+    const [actionError, setActionError] = useState(null);
 
     const [showAddMember, setShowAddMember] = useState(false);
     const [selectedUserId, setSelectedUserId] = useState("");
@@ -69,6 +71,13 @@ function ProjectMembersPage() {
                 selectedRole
             );
 
+            toast.add({
+                title: "Member added",
+                description: "The member was added to the project.",
+                type: "success",
+                duration: 2000
+            });
+
             setShowAddMember(false);
             setSelectedUserId("");
             setSelectedRole("Member");
@@ -76,7 +85,12 @@ function ProjectMembersPage() {
             await loadMembers();
         } catch (err) {
             console.error(err);
-            setError(err);
+            toast.add({
+                title: "Unable to add member",
+                description: err.message,
+                type: "error",
+                duration: 3000
+            });
         } finally {
             setSubmitting(false);
         }
@@ -90,24 +104,25 @@ function ProjectMembersPage() {
                 role
             );
 
-            await loadMembers();
-        } catch (err) {
-            console.error(err);
-            setError(err);
-        }
-    }
-
-    async function handleRemoveMember(userId) {
-        try {
-            await removeProjectMember(
-                projectKey,
-                userId
-            );
+            toast.add({
+                title: "Role updated",
+                description: "The member's project role was updated.",
+                type: "success",
+                duration: 2000
+            });
 
             await loadMembers();
         } catch (err) {
             console.error(err);
-            setError(err);
+            setActionError(err);
+            toast.add({
+                title: "Unable to update role",
+                description: err.message,
+                type: "error",
+                duration: 3000
+            });
+        } finally {
+            setSubmitting(false);
         }
     }
 
@@ -312,7 +327,10 @@ function ProjectMembersPage() {
                                 {(isAdmin || member.role === "Member") && (
                                     <button
                                         type="button"
-                                        onClick={() => setMemberToRemove(member)}
+                                        onClick={() => {
+                                            setActionError(null);
+                                            setMemberToRemove(member);
+                                        }}
                                         className="px-3 py-1 rounded-md border text-sm text-destructive hover:bg-destructive/10"
                                     >
                                         Remove
@@ -370,10 +388,22 @@ function ProjectMembersPage() {
 
                                         setMemberToRemove(null);
 
+                                        toast.add({
+                                            title: "Member removed",
+                                            description: "The member was removed from the project.",
+                                            type: "success",
+                                            duration: 2000
+                                        });
+
                                         await loadMembers();
                                     } catch (err) {
                                         console.error(err);
-                                        setError(err);
+                                        toast.add({
+                                            title: "Unable to remove member",
+                                            description: err.message,
+                                            type: "error",
+                                            duration: 3000
+                                        });
                                     } finally {
                                         setSubmitting(false);
                                     }
