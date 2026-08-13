@@ -86,6 +86,7 @@ function ProjectListPage() {
                     <Link
                         key={project.projectKey}
                         to={`/project/${project.projectKey}`}
+                        className="block"
                     >
                         <Card className="transition-all hover:shadow-md hover:border-primary/40">
                             <CardHeader>

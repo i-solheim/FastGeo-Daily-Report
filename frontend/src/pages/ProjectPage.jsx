@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { Info, RefreshCw, Diamond } from "lucide-react";
+import { Info, RefreshCw, Diamond, ArrowLeft } from "lucide-react";
 import { ReportHeader } from "@/components/ReportHeader";
 import { SummaryCards } from "@/components/SummaryCards";
 import { ChangesTable } from "@/components/ChangesTable";
@@ -23,7 +23,7 @@ import ErrorState from "@/components/ErrorState";
 
 function ProjectPage() {
     const { projectKey } = useParams();
-    const { logout } = useAuth();
+    const { logout, user } = useAuth();
     const navigate = useNavigate();
 
     const [changes, setChanges] = useState({});
@@ -43,6 +43,11 @@ function ProjectPage() {
 
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
+
+    const isAdmin = user?.isAdmin === true;
+    const isLeader = membership?.role === "Leader";
+
+    const canManageMembers = isAdmin || isLeader;
 
     const loadData = useCallback(async () => {
         try {
@@ -129,7 +134,15 @@ function ProjectPage() {
     }
 
     return (
-        <div className="max-w-[60%] mx-auto">
+        <div className="max-w-[60%] mx-auto pt-8">
+            <button
+                type="button"
+                onClick={() => navigate("/")}
+                className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground mb-6"
+            >
+                <ArrowLeft className="w-4 h-4" />
+                Back to projects
+            </button>
             {summary && (
                 <ReportHeader
                     summary={summary}
@@ -141,6 +154,9 @@ function ProjectPage() {
                     authors={Object.keys(changes)}
                     onCopyReport={handleCopyReport}
                     onLogout={handleLogout}
+                    canManageMembers={canManageMembers}
+                    onManageMembers={() =>
+                        navigate(`/project/${projectKey}/members`)}
                 />
             )}
 

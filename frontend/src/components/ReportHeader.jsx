@@ -6,10 +6,11 @@ import { Button } from "@/components/ui/button";
 import { useAuth } from "../context/AuthContext";
 import DatePicker from "@/components/DatePicker";
 
-export function ReportHeader({ summary, role, selectedDate, setSelectedDate, selectedMember, setSelectedMember, authors, onCopyReport, onLogout }) {
+export function ReportHeader({ summary, role, selectedDate, setSelectedDate, selectedMember, setSelectedMember, authors, onCopyReport, onLogout, canManageMembers,
+    onManageMembers }) {
     const { user } = useAuth();
     return (
-        <div className="mb-6 mt-16">
+        <div className="mb-6 mt-6">
             <div className="flex items-start justify-between">
                 <div>
                     <h1 className="text-3xl font-bold">Daily Report</h1>
@@ -32,6 +33,16 @@ export function ReportHeader({ summary, role, selectedDate, setSelectedDate, sel
                             {role}
                         </p>
                     </div>
+
+                    {canManageMembers && (
+                        <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={onManageMembers}
+                        >
+                            Manage Members
+                        </Button>
+                    )}
 
                     <Button
                         variant="outline"
@@ -79,6 +90,7 @@ export function ReportHeader({ summary, role, selectedDate, setSelectedDate, sel
                             ))}
                         </SelectContent>
                     </Select>
+
                 )}
 
             </div>
