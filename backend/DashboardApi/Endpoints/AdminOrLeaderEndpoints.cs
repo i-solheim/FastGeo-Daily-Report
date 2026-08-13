@@ -34,6 +34,28 @@ public static class AdminOrLeaderEndpoints
                 });
             });
 
+        projectMembers.MapGet("/available-users",
+            async (
+                string projectKey,
+                ProjectRepository repo) =>
+            {
+                var users =
+                    await repo.GetAvailableUsers(projectKey);
+
+                if (users == null)
+                {
+                    return Results.NotFound(new
+                    {
+                        message = "Project not found."
+                    });
+                }
+
+                return Results.Ok(new
+                {
+                    users
+                });
+            });
+
         projectMembers.MapPost("",
             async (
                 ClaimsPrincipal user,

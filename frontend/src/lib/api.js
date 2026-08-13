@@ -51,3 +51,33 @@ export async function apiGet(path) {
 export async function apiGetText(path) {
     return (await request(path)).text();
 }
+
+export async function apiPost(path, body) {
+    return (
+        await request(path, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify(body)
+        })
+    ).json();
+}
+
+export async function apiPatch(path, body) {
+    return (
+        await request(path, {
+            method: "PATCH",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify(body)
+        })
+    ).json();
+}
+
+export async function apiDelete(path) {
+    return await request(path, {
+        method: "DELETE"
+    });
+}

@@ -4,6 +4,7 @@ import { Route, Routes } from "react-router-dom"
 import { Toaster } from "@/components/ui/toast";
 import ProtectedRoute from "./components/ProtectedRoute";
 import LoginPage from "./pages/LoginPage";
+import ProjectMembersPage from "./pages/ProjectMembersPage";
 
 function App() {
   return (
@@ -28,6 +29,11 @@ function App() {
                 <ProjectPage />
               </ProtectedRoute>
             }
+          />
+
+          <Route
+            path="/project/:projectKey/members"
+            element={<ProjectMembersPage />}
           />
         </Routes>
       </Toaster>

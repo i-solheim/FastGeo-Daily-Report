@@ -17,9 +17,9 @@ public static class DashboardEndpoints
                 ClaimsPrincipal user,
                 DashboardRepository repo) =>
             {
-                var userIdClaim = 
+                var userIdClaim =
                     user.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-                
+
                 if (!int.TryParse(userIdClaim, out var userId))
                 {
                     return Results.Unauthorized();
@@ -180,6 +180,37 @@ public static class DashboardEndpoints
                     todayChanges);
 
                 return Results.Text(report);
+            });
+
+        dashboard.MapGet("/projects/{projectKey}/membership",
+            async (
+                string projectKey,
+                ClaimsPrincipal user,
+                ProjectRepository projectRepository) =>
+            {
+                var userIdClaim =
+                    user.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+                if (!int.TryParse(userIdClaim, out var userId))
+                {
+                    return Results.Unauthorized();
+                }
+
+                var membership =
+                    await projectRepository.GetMembership(
+                        projectKey,
+                        userId);
+
+                if (membership == null)
+                {
+                    return Results.Forbid();
+                }
+
+                return Results.Ok(new
+                {
+                    project = projectKey,
+                    role = membership.Role
+                });
             });
     }
 }

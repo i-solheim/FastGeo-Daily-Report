@@ -4,9 +4,17 @@ import { Info, RefreshCw, Diamond } from "lucide-react";
 import { ReportHeader } from "@/components/ReportHeader";
 import { SummaryCards } from "@/components/SummaryCards";
 import { ChangesTable } from "@/components/ChangesTable";
-import { toast } from "@/components/ui/toast"
-import { groupByAuthorAndCategory, formatShortDate } from "@/lib/reportUtils";
-import { getChanges, getSummary, getReport, getProjects } from "@/lib/dashboardApi";
+import { toast } from "@/components/ui/toast";
+import {
+    groupByAuthorAndCategory,
+    formatShortDate
+} from "@/lib/reportUtils";
+import {
+    getChanges,
+    getSummary,
+    getReport,
+    getProjectMembership
+} from "@/lib/dashboardApi";
 import { useAuth } from "../context/AuthContext";
 import ReportHeaderSkeleton from "@/components/ReportHeaderSkeleton";
 import SummaryCardsSkeleton from "@/components/SummaryCardsSkeleton";
@@ -17,16 +25,22 @@ function ProjectPage() {
     const { projectKey } = useParams();
     const { logout } = useAuth();
     const navigate = useNavigate();
+
     const [changes, setChanges] = useState({});
     const [expandedAuthors, setExpandedAuthors] = useState({});
     const [summary, setSummary] = useState(null);
-    const [projectRole, setProjectRole] = useState(null);
+    const [membership, setMembership] = useState(null);
+
     const [selectedDate, setSelectedDate] = useState(() => {
         const yesterday = new Date();
         yesterday.setDate(yesterday.getDate() - 1);
+
         return yesterday.toISOString().split("T")[0];
     });
-    const [selectedMember, setSelectedMember] = useState("All Members");
+
+    const [selectedMember, setSelectedMember] =
+        useState("All Members");
+
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
 
@@ -35,25 +49,22 @@ function ProjectPage() {
             setLoading(true);
             setError(null);
 
-            const [projectsData, changesData, summaryData] =
-                await Promise.all([
-                    getProjects(),
-                    getChanges(projectKey, selectedDate),
-                    getSummary(projectKey, selectedDate),
-                ]);
+            const [
+                changesData,
+                summaryData,
+                membershipData
+            ] = await Promise.all([
+                getChanges(projectKey, selectedDate),
+                getSummary(projectKey, selectedDate),
+                getProjectMembership(projectKey)
+            ]);
 
-            const currentProject = projectsData.projects.find(
-                project => project.projectKey === projectKey
-            );
-
-            if (!currentProject) {
-                throw new Error("You do not have access to this project.");
-            }
-
-            setProjectRole(currentProject.role);
+            setMembership(membershipData);
 
             setChanges(
-                groupByAuthorAndCategory(changesData.changes)
+                groupByAuthorAndCategory(
+                    changesData.changes
+                )
             );
 
             setSummary(summaryData);
@@ -90,7 +101,10 @@ function ProjectPage() {
     }
 
     function toggleAuthor(author) {
-        setExpandedAuthors(prev => ({ ...prev, [author]: !prev[author] }));
+        setExpandedAuthors(prev => ({
+            ...prev,
+            [author]: !prev[author]
+        }));
     }
 
     async function handleCopyReport() {
@@ -119,7 +133,7 @@ function ProjectPage() {
             {summary && (
                 <ReportHeader
                     summary={summary}
-                    role={projectRole}
+                    role={membership?.role}
                     selectedDate={selectedDate}
                     setSelectedDate={setSelectedDate}
                     selectedMember={selectedMember}
@@ -130,7 +144,9 @@ function ProjectPage() {
                 />
             )}
 
-            {summary && <SummaryCards summary={summary} />}
+            {summary && (
+                <SummaryCards summary={summary} />
+            )}
 
             <ChangesTable
                 changes={changes}
@@ -142,21 +158,35 @@ function ProjectPage() {
             <div className="mt-4 bg-muted/40 rounded-lg p-4 flex items-start justify-between gap-6">
                 <div className="flex items-start gap-2">
                     <Info className="w-4 h-4 text-blue-500 mt-0.5 shrink-0" />
+
                     <div>
-                        <p className="text-sm font-medium">About this report</p>
+                        <p className="text-sm font-medium">
+                            About this report
+                        </p>
+
                         <p className="text-xs text-muted-foreground mt-1">
-                            This report shows tasks that were created, completed, or had status changes during the selected time period.
+                            This report shows tasks that were created,
+                            completed, or had status changes during the
+                            selected time period.
                         </p>
                     </div>
                 </div>
+
                 <div className="flex flex-col gap-1 text-xs text-muted-foreground shrink-0">
                     <div className="flex items-center gap-2">
                         <Diamond className="w-3.5 h-3.5 text-blue-500" />
                         <span>Data source: Jira</span>
                     </div>
+
                     <div className="flex items-center gap-2">
                         <RefreshCw className="w-3.5 h-3.5" />
-                        <span>Updated: {summary && formatShortDate(summary.date)} 9:00 AM</span>
+
+                        <span>
+                            Updated:{" "}
+                            {summary &&
+                                formatShortDate(summary.date)}{" "}
+                            9:00 AM
+                        </span>
                     </div>
                 </div>
             </div>

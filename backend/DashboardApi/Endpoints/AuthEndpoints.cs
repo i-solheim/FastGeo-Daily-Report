@@ -87,7 +87,8 @@ public static class AuthEndpoints
             return Results.Ok(new
             {
                 Username = user.Identity?.Name,
-                DisplayName = user.FindFirst("display_name")?.Value
+                DisplayName = user.FindFirst("display_name")?.Value,
+                IsAdmin = user.FindFirst("is_admin")?.Value == "true"
             });
         })
         .RequireAuthorization();

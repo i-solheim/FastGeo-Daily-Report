@@ -166,7 +166,7 @@ public class ProjectRepository
         return AddProjectMemberResult.Added;
     }
 
-    public async Task<List<ProjectMembership>?> GetMembers(
+    public async Task<List<ProjectMemberResponse>?> GetMembers(
     string projectKey)
     {
         await using var conn =
@@ -180,16 +180,22 @@ public class ProjectRepository
             SELECT
                 p.id,
                 pm.user_id,
+                u.username,
+                u.display_name,
                 pm.role
             FROM projects p
             LEFT JOIN project_members pm
                 ON pm.project_id = p.id
+            LEFT JOIN users u
+                ON u.id = pm.user_id
             WHERE p.project_key = @projectKey
             ORDER BY pm.role, pm.user_id;
             """,
                 conn);
 
-        cmd.Parameters.AddWithValue("projectKey", projectKey);
+        cmd.Parameters.AddWithValue(
+            "projectKey",
+            projectKey);
 
         await using var reader =
             await cmd.ExecuteReaderAsync();
@@ -200,18 +206,22 @@ public class ProjectRepository
             return null;
         }
 
-        var members = new List<ProjectMembership>();
+        var members = new List<ProjectMemberResponse>();
 
         do
         {
-            // LEFT JOIN means pm may be NULL
+            // LEFT JOIN means a project can exist
+            // without any members.
             if (!reader.IsDBNull(1))
             {
-                members.Add(new ProjectMembership
+                members.Add(new ProjectMemberResponse
                 {
-                    ProjectId = reader.GetInt32(0),
                     UserId = reader.GetInt32(1),
-                    Role = reader.GetString(2)
+                    Username = reader.GetString(2),
+                    DisplayName = reader.IsDBNull(3)
+                        ? ""
+                        : reader.GetString(3),
+                    Role = reader.GetString(4)
                 });
             }
         }
@@ -220,6 +230,79 @@ public class ProjectRepository
         return members;
     }
 
+    public async Task<List<ProjectAvailableUserResponse>?> GetAvailableUsers(
+    string projectKey)
+    {
+        await using var conn =
+            new NpgsqlConnection(_connectionString);
+
+        await conn.OpenAsync();
+
+        await using var projectCmd =
+            new NpgsqlCommand(
+                """
+            SELECT id
+            FROM projects
+            WHERE project_key = @projectKey;
+            """,
+                conn);
+
+        projectCmd.Parameters.AddWithValue(
+            "projectKey",
+            projectKey);
+
+        var projectResult =
+            await projectCmd.ExecuteScalarAsync();
+
+        if (projectResult == null)
+        {
+            return null;
+        }
+
+        var projectId = (int)projectResult;
+
+        await using var cmd =
+            new NpgsqlCommand(
+                """
+            SELECT
+                u.id,
+                u.username,
+                u.display_name
+            FROM users u
+            WHERE NOT EXISTS (
+                SELECT 1
+                FROM project_members pm
+                WHERE
+                    pm.project_id = @projectId
+                    AND pm.user_id = u.id
+            )
+            ORDER BY u.username;
+            """,
+                conn);
+
+        cmd.Parameters.AddWithValue(
+            "projectId",
+            projectId);
+
+        await using var reader =
+            await cmd.ExecuteReaderAsync();
+
+        var users = new List<ProjectAvailableUserResponse>();
+
+        while (await reader.ReadAsync())
+        {
+            users.Add(new ProjectAvailableUserResponse
+            {
+                Id = reader.GetInt32(0),
+                Username = reader.GetString(1),
+                DisplayName = reader.IsDBNull(2)
+                    ? ""
+                    : reader.GetString(2)
+            });
+        }
+
+        return users;
+    }
     public async Task<bool> UpdateRole(
     string projectKey,
     int userId,
