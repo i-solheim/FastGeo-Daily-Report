@@ -188,22 +188,9 @@ function ProjectPage() {
                     </div>
                 </div>
 
-                <div className="flex flex-col gap-1 text-xs text-muted-foreground shrink-0">
-                    <div className="flex items-center gap-2">
-                        <Diamond className="w-3.5 h-3.5 text-blue-500" />
-                        <span>Data source: Jira</span>
-                    </div>
-
-                    <div className="flex items-center gap-2">
-                        <RefreshCw className="w-3.5 h-3.5" />
-
-                        <span>
-                            Updated:{" "}
-                            {summary &&
-                                formatShortDate(summary.date)}{" "}
-                            9:00 AM
-                        </span>
-                    </div>
+                <div className="flex items-center gap-2 text-xs text-muted-foreground shrink-0">
+                    <Diamond className="w-3.5 h-3.5" />
+                    <span>Data source: GitHub Projects</span>
                 </div>
             </div>
         </div>

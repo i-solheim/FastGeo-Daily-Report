@@ -239,7 +239,7 @@ application starts.
 The repository also contains:
 
 ``` text
-backend/DashboardApi/JiraDashboardApi.http
+backend/DashboardApi/DashboardApi.http
 ```
 
 which can be used for manually testing API requests during development.
